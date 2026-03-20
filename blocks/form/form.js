@@ -107,8 +107,7 @@ export default function decorate(block) {
       toDate: data['to-date'] || '',
       eventType: 'card.submitted',
     };
-
-    // ✅ SAFE Adobe Data Layer push (queue pattern)
+    
     window.adobeDataLayer = window.adobeDataLayer || [];
     window.adobeDataLayer.push(payload);
 
