@@ -3,7 +3,8 @@ export default function decorate(block) {
   const rows = [...block.children];
 
   rows.forEach((row) => {
-    const labelText = row.textContent.trim().replace(/\s+/g, ' ');
+    const labelText = row.children[0]?.textContent.trim().replace(/\s+/g, ' ');
+    const valueText = row.children[1]?.textContent.trim() || '';
     let field = null;
 
     if (labelText === 'Name' || labelText === 'Project') {
@@ -26,23 +27,16 @@ export default function decorate(block) {
       field = document.createElement('select');
       field.name = 'accelerator-used';
 
-      // 👉 get 2nd column text
-      const valueCell = row.children[1];
-      let optionsText = valueCell ? valueCell.textContent.trim() : '';
-
-      // fallback if empty
-      if (!optionsText) {
-        optionsText = 'Yes, No';
-      }
-
-      const options = optionsText.split(',').map(opt => opt.trim());
-
-      // default option
       const placeholder = document.createElement('option');
+      placeholder.value = '';
       placeholder.textContent = 'Select accelerator';
       placeholder.disabled = true;
       placeholder.selected = true;
       field.appendChild(placeholder);
+
+      const options = valueText
+        ? valueText.split(',').map((opt) => opt.trim()).filter(Boolean)
+        : [];
 
       options.forEach((opt) => {
         const option = document.createElement('option');
@@ -59,18 +53,19 @@ export default function decorate(block) {
     if (!field) return;
 
     const wrapper = document.createElement('div');
-    wrapper.className = 'form-row';
 
-    if (field.type !== 'submit') {
-      const label = document.createElement('label');
-      label.textContent = labelText;
-      label.setAttribute('for', field.name);
-      field.id = field.name;
-
-      wrapper.appendChild(label);
+    if (field.type === 'submit') {
+      wrapper.className = 'form-row form-row-submit';
       wrapper.appendChild(field);
     } else {
-      wrapper.className = 'form-row form-row-submit';
+      wrapper.className = 'form-row';
+
+      const label = document.createElement('label');
+      label.textContent = labelText;
+      label.setAttribute('for', field.name || labelText.toLowerCase().replace(/\s+/g, '-'));
+      field.id = field.name || labelText.toLowerCase().replace(/\s+/g, '-');
+
+      wrapper.appendChild(label);
       wrapper.appendChild(field);
     }
 
@@ -79,10 +74,8 @@ export default function decorate(block) {
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-
     const data = new FormData(form);
     const values = Object.fromEntries(data.entries());
-
     console.log('Weekly report submitted:', values);
     alert('Weekly report submitted. Check the console for values.');
   });
