@@ -14,15 +14,17 @@ import {
 
 // Add Web SDK
 function loadWebSDKFromForm() {
-  const rows = document.querySelectorAll('.form > div');
-  console.log('Looking for WebSDK in form rows:', rows.innerHTML);
+  // Look for the "Web SDK" label in the original .form rows
+  const formWrapper = document.querySelector('.form');
+  if (!formWrapper) return;
+  const rows = formWrapper.querySelectorAll(':scope > div');
   for (const row of rows) {
     const label = row.children[0]?.textContent.trim();
-    if (label === 'WebSDK') {
-      // Extract the URL from the anchor if present, otherwise from the cell text
-      const anchor = row.querySelector('a[href]');
-      const url = anchor ? anchor.href : row.children[1]?.textContent.trim();
-      if (url && !document.querySelector(`script[src="${url}"]`)) {
+    if (label === 'Web SDK' || label === 'WebSDK') {
+      const urlCell = row.children[1];
+      const anchor = urlCell.querySelector('a[href]');
+      const url = anchor ? anchor.href : urlCell.textContent.trim();
+      if (url && !document.head.querySelector(`script[src="${url}"]`)) {
         const scriptEl = document.createElement('script');
         scriptEl.src = url;
         scriptEl.async = true;
