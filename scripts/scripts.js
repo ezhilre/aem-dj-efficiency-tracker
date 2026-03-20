@@ -169,14 +169,14 @@ async function loadLazy(doc) {
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
 
-const launchUrl = 'https://assets.adobedtm.com/e78d80a30a77/9c4b7455547c/launch-fe924edcd981-development.min.js';
+// const launchUrl = 'https://assets.adobedtm.com/e78d80a30a77/9c4b7455547c/launch-fe924edcd981-development.min.js';
   
-  if (!doc.querySelector(`script[src="${launchUrl}"]`)) {
-    const script = doc.createElement('script');
-    script.src = launchUrl;
-    script.async = true;
-    doc.head.append(script); // Explicitly append to <head>
-  }
+//   if (!doc.querySelector(`script[src="${launchUrl}"]`)) {
+//     const script = doc.createElement('script');
+//     script.src = launchUrl;
+//     script.async = true;
+//     doc.head.append(script); // Explicitly append to <head>
+//   }
 
  
 }
