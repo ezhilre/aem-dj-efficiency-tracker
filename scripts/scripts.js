@@ -13,29 +13,49 @@ import {
 } from './aem.js';
 
 // Add Web SDK
+// Add Web SDK loader with verbose logging
 function loadWebSDKFromForm() {
-  // Look for the "Web SDK" label in the original .form rows
+  console.log('🔵 loadWebSDKFromForm called');
+
+  // Find the original .form wrapper (exists before the form block is decorated)
   const formWrapper = document.querySelector('.form');
-  if (!formWrapper) return;
+  console.log('🔵 formWrapper:', formWrapper);
+  if (!formWrapper) {
+    console.log('🔴 No .form wrapper found; the block may have already been decorated.');
+    return;
+  }
+
   const rows = formWrapper.querySelectorAll(':scope > div');
+  console.log('🔵 Number of rows found:', rows.length);
+  // Log each row’s label and value
+  rows.forEach((row, idx) => {
+    const label = row.children[0]?.textContent.trim();
+    const value = row.children[1]?.textContent.trim();
+    console.log(`Row ${idx}: label="${label}", value="${value}"`);
+  });
+
   for (const row of rows) {
     const label = row.children[0]?.textContent.trim();
+    // Use "Web SDK" with a space, as that is how it is authored
     if (label === 'Web SDK' || label === 'WebSDK') {
+      console.log('🟢 Found Web SDK row:', row.innerHTML);
       const urlCell = row.children[1];
       const anchor = urlCell.querySelector('a[href]');
       const url = anchor ? anchor.href : urlCell.textContent.trim();
+      console.log('🔵 Extracted URL:', url);
       if (url && !document.head.querySelector(`script[src="${url}"]`)) {
         const scriptEl = document.createElement('script');
         scriptEl.src = url;
         scriptEl.async = true;
         document.head.appendChild(scriptEl);
-        console.log(`Web SDK script injected: ${url}`);
+        console.log('🟢 Script inserted into <head>:', scriptEl);
+      } else {
+        console.log('🔴 Script already present or URL is missing.');
       }
       break;
     }
   }
 }
-
 /**
  * Builds hero block and prepends to main in a new section.
  * @param {Element} main The container element
