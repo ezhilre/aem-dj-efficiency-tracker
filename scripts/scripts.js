@@ -12,6 +12,27 @@ import {
   loadCSS,
 } from './aem.js';
 
+// Add Web SDK
+function loadWebSDKFromForm() {
+  const rows = document.querySelectorAll('.form > div');
+  for (const row of rows) {
+    const label = row.children[0]?.textContent.trim();
+    if (label === 'Web SDK' || label === 'WebSDK') {
+      // Extract the URL from the anchor if present, otherwise from the cell text
+      const anchor = row.querySelector('a[href]');
+      const url = anchor ? anchor.href : row.children[1]?.textContent.trim();
+      if (url && !document.querySelector(`script[src="${url}"]`)) {
+        const scriptEl = document.createElement('script');
+        scriptEl.src = url;
+        scriptEl.async = true;
+        document.head.appendChild(scriptEl);
+        console.log(`Web SDK script injected: ${url}`);
+      }
+      break;
+    }
+  }
+}
+
 /**
  * Builds hero block and prepends to main in a new section.
  * @param {Element} main The container element
@@ -168,6 +189,9 @@ async function loadLazy(doc) {
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
+
+  // Add WebSDK
+  loadWebSDKFromForm();
 }
 
 /**

@@ -1,26 +1,16 @@
-// blocks/form/form.js
-
 export default function decorate(block) {
   console.log('🔵Form block is called', block.innerHTML);
   const form = document.createElement('form');
-  const rows = [...block.children];
-
-  let webSDKUrl = '';
+  const rows = [...block.children]; 
 
   rows.forEach((row) => {
     const labelText = row.children[0]?.textContent.trim().replace(/\s+/g, ' ');
     const valueText = row.children[1]?.textContent.trim() || '';
     let field = null;
 
-    // Capture the Web SDK URL and skip rendering this row
-    if (labelText === 'Web SDK' || labelText === 'WebSDK') {
-      // valueText might be wrapped in an anchor; extract the href if so
-      const anchor = row.querySelector('a');
-      webSDKUrl = anchor ? anchor.href : valueText;
-      return;
-    }
+    console.log('row label:', labelText);
+    console.log('row value:', valueText);
 
-    // existing logic to build the form fields
     if (labelText === 'Name' || labelText === 'Project') {
       field = document.createElement('input');
       field.type = 'text';
@@ -40,13 +30,21 @@ export default function decorate(block) {
     } else if (labelText === 'Accelerator Used') {
       field = document.createElement('select');
       field.name = 'accelerator-used';
+
       const placeholder = document.createElement('option');
       placeholder.value = '';
       placeholder.textContent = 'Select accelerator';
       placeholder.disabled = true;
       placeholder.selected = true;
       field.appendChild(placeholder);
-      const options = valueText.split(',').map((opt) => opt.trim()).filter(Boolean);
+
+      const options = valueText
+        .split(',')
+        .map((opt) => opt.trim())
+        .filter(Boolean);
+
+      console.log('accelerator options:', options);
+
       options.forEach((opt) => {
         const option = document.createElement('option');
         option.value = opt;
@@ -62,22 +60,25 @@ export default function decorate(block) {
     if (!field) return;
 
     const wrapper = document.createElement('div');
+
     if (field.type === 'submit') {
       wrapper.className = 'form-row form-row-submit';
       wrapper.appendChild(field);
     } else {
       wrapper.className = 'form-row';
+
       const label = document.createElement('label');
       label.textContent = labelText;
       label.setAttribute('for', field.name || labelText.toLowerCase().replace(/\s+/g, '-'));
       field.id = field.name || labelText.toLowerCase().replace(/\s+/g, '-');
+
       wrapper.appendChild(label);
       wrapper.appendChild(field);
     }
+
     form.appendChild(wrapper);
   });
 
-  // Submit handler
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     const data = new FormData(form);
@@ -87,13 +88,4 @@ export default function decorate(block) {
   });
 
   block.replaceChildren(form);
-
-  // Inject Web SDK script into <head>
-  if (webSDKUrl && !document.querySelector(`script[src="${webSDKUrl}"]`)) {
-    const script = document.createElement('script');
-    script.src = webSDKUrl;
-    script.async = true;
-    document.head.appendChild(script);
-    console.log(`Injected Web SDK script into <head>: ${webSDKUrl}`);
-  }
 }
