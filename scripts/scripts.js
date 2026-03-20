@@ -169,13 +169,16 @@ async function loadLazy(doc) {
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
 
-  // Add the Adobe Launch script
-  const launchScriptUrl = 'https://assets.adobedtm.com/e78d80a30a77/9c4b7455547c/launch-fe924edcd981-development.min.js';
+ // 1. Define the script
+  const launchScriptUrl = 'https://assets.adobedtm.com';
   
-  // Use the built-in loadScript utility from aem.js
-  import('./aem.js').then((mod) => {
-    mod.loadScript(launchScriptUrl, { async: true });
-  });
+  // 2. Manually create and append to <head>
+  if (!doc.querySelector(`script[src="${launchScriptUrl}"]`)) {
+    const script = document.createElement('script');
+    script.src = launchScriptUrl;
+    script.async = true;
+    doc.head.append(script); // This forces it into the head
+  }
 
  
 }
