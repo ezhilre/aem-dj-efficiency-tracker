@@ -15,9 +15,10 @@ import {
 // Add Web SDK
 function loadWebSDKFromForm() {
   const rows = document.querySelectorAll('.form > div');
+  console.log('Looking for WebSDK in form rows:', rows.innerHTML);
   for (const row of rows) {
     const label = row.children[0]?.textContent.trim();
-    if (label === 'Web SDK' || label === 'WebSDK') {
+    if (label === 'WebSDK') {
       // Extract the URL from the anchor if present, otherwise from the cell text
       const anchor = row.querySelector('a[href]');
       const url = anchor ? anchor.href : row.children[1]?.textContent.trim();
