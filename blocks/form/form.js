@@ -1,7 +1,7 @@
 export default function decorate(block) {
   console.log('🔵Form block is called', block.innerHTML);
   const form = document.createElement('form');
-  const rows = [...block.children]; 
+  const rows = [...block.children];
 
   rows.forEach((row) => {
     const labelText = row.children[0]?.textContent.trim().replace(/\s+/g, ' ');
