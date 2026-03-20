@@ -1,4 +1,5 @@
 export default function decorate(block) {
+  console.log('🔵Form block is called', block.innerHTML);
   const form = document.createElement('form');
   const rows = [...block.children];
 
@@ -6,6 +7,9 @@ export default function decorate(block) {
     const labelText = row.children[0]?.textContent.trim().replace(/\s+/g, ' ');
     const valueText = row.children[1]?.textContent.trim() || '';
     let field = null;
+
+    console.log('row label:', labelText);
+    console.log('row value:', valueText);
 
     if (labelText === 'Name' || labelText === 'Project') {
       field = document.createElement('input');
@@ -35,8 +39,11 @@ export default function decorate(block) {
       field.appendChild(placeholder);
 
       const options = valueText
-        ? valueText.split(',').map((opt) => opt.trim()).filter(Boolean)
-        : [];
+        .split(',')
+        .map((opt) => opt.trim())
+        .filter(Boolean);
+
+      console.log('accelerator options:', options);
 
       options.forEach((opt) => {
         const option = document.createElement('option');
