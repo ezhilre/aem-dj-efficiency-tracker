@@ -1,24 +1,28 @@
 // blocks/form/form.js
+
 export default function decorate(block) {
+  console.log('🔵 form.js decorate() called');
+
   const form = document.createElement('form');
   const rows = [...block.children];
 
-  // Variable to capture the Web SDK URL
+  // Capture the WebSDK URL (if provided in the table)
   let webSDKUrl = '';
 
   rows.forEach((row) => {
-    const labelText = row.children[0]?.textContent.trim().replace(/\s+/g, ' ');
+    const labelText = row.children[0]?.textContent.trim();
     const valueText = row.children[1]?.textContent.trim() || '';
     let field = null;
 
-    // Detect the Web SDK row and capture its URL
-    if (labelText === 'Web SDK' || labelText === 'WebSDK') {
+    // Handle WebSDK row: extract URL and skip rendering
+    if (labelText === 'WebSDK' || labelText === 'Web SDK') {
       const anchor = row.querySelector('a[href]');
       webSDKUrl = anchor ? anchor.href : valueText;
-      return; // skip rendering this row
+      console.log('🔵 Found WebSDK row, URL =', webSDKUrl);
+      return;
     }
 
-    // existing logic for Name, Dates, Project, etc.
+    // Build form fields based on known labels
     if (labelText === 'Name' || labelText === 'Project') {
       field = document.createElement('input');
       field.type = 'text';
@@ -59,8 +63,10 @@ export default function decorate(block) {
       field.textContent = labelText;
     }
 
+    // Skip unknown labels
     if (!field) return;
 
+    // Wrap label and field
     const wrapper = document.createElement('div');
     if (field.type === 'submit') {
       wrapper.className = 'form-row form-row-submit';
@@ -69,18 +75,16 @@ export default function decorate(block) {
       wrapper.className = 'form-row';
       const label = document.createElement('label');
       label.textContent = labelText;
-      label.setAttribute(
-        'for',
-        field.name || labelText.toLowerCase().replace(/\s+/g, '-'),
-      );
-      field.id =
-        field.name || labelText.toLowerCase().replace(/\s+/g, '-');
+      const nameAttr = field.name || labelText.toLowerCase().replace(/\s+/g, '-');
+      label.setAttribute('for', nameAttr);
+      field.id = nameAttr;
       wrapper.appendChild(label);
       wrapper.appendChild(field);
     }
     form.appendChild(wrapper);
   });
 
+  // Handle form submission
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(form).entries());
@@ -88,14 +92,19 @@ export default function decorate(block) {
     alert('Weekly report submitted. Check the console for values.');
   });
 
+  // Replace block content with the built form
   block.replaceChildren(form);
 
-  // Inject the Web SDK script into <head> if a URL was provided
+  // Inject Web SDK script into <head> if a URL was provided
   if (webSDKUrl && !document.head.querySelector(`script[src="${webSDKUrl}"]`)) {
     const scriptEl = document.createElement('script');
     scriptEl.src = webSDKUrl;
     scriptEl.async = true;
     document.head.appendChild(scriptEl);
-    console.log(`Web SDK injected from form: ${webSDKUrl}`);
+    console.log('🟢 WebSDK script injected into <head>:', webSDKUrl);
+  } else if (!webSDKUrl) {
+    console.log('🔴 No WebSDK URL found; script not injected.');
+  } else {
+    console.log('🔵 WebSDK script already present; not injecting again.');
   }
 }
