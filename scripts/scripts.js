@@ -169,15 +169,13 @@ async function loadLazy(doc) {
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
 
- // 1. Define the script
-  const launchScriptUrl = 'https://assets.adobedtm.com';
+const launchUrl = 'https://assets.adobedtm.com';
   
-  // 2. Manually create and append to <head>
-  if (!doc.querySelector(`script[src="${launchScriptUrl}"]`)) {
-    const script = document.createElement('script');
-    script.src = launchScriptUrl;
+  if (!doc.querySelector(`script[src="${launchUrl}"]`)) {
+    const script = doc.createElement('script');
+    script.src = launchUrl;
     script.async = true;
-    doc.head.append(script); // This forces it into the head
+    doc.head.append(script); // Explicitly append to <head>
   }
 
  
