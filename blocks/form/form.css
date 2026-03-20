@@ -81,3 +81,25 @@
     width: 100%;
   }
 }
+
+.form-row-submit button {
+  grid-column: 2;
+  justify-self: start;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 8px;
+  background: #e1251b; /* Adobe red */
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.form-row-submit button:hover {
+  background: #c81d17;
+}
+
+.form-row-submit button:active {
+  transform: scale(0.98);
+}
