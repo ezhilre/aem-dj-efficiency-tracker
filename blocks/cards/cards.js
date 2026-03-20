@@ -1,6 +1,8 @@
 import { createOptimizedPicture } from '../../scripts/aem.js';
 
 export default function decorate(block) {
+
+  console.log(block.innerHTML);
   console.log('🔵 decorate() called with block:', block);
 
   const ul = document.createElement('ul');
