@@ -12,48 +12,30 @@ export default function decorate(block) {
     submitButton: null,
   };
 
-  const errorSummary = document.createElement('div');
-  errorSummary.className = 'form-error-summary';
-  errorSummary.hidden = true;
-  errorSummary.setAttribute('role', 'alert');
-  errorSummary.setAttribute('aria-live', 'polite');
-
-  const clearSummary = () => {
-    errorSummary.hidden = true;
-    errorSummary.replaceChildren();
-  };
-
-  const showSummary = (errors) => {
-    errorSummary.hidden = false;
-    errorSummary.replaceChildren();
-
-    const title = document.createElement('div');
-    title.className = 'form-error-summary-title';
-    title.textContent = 'Please fix the errors below before continuing.';
-
-    const list = document.createElement('ul');
-    list.className = 'form-error-summary-list';
-
-    errors.forEach(({ label, message }) => {
-      const item = document.createElement('li');
-      item.textContent = `${label}: ${message}`;
-      list.appendChild(item);
-    });
-
-    errorSummary.appendChild(title);
-    errorSummary.appendChild(list);
-  };
-
   const setFieldError = (field, errorEl, message) => {
     if (message) {
       field.setAttribute('aria-invalid', 'true');
+      field.classList.add('is-invalid');
       errorEl.textContent = message;
       errorEl.hidden = false;
     } else {
       field.removeAttribute('aria-invalid');
+      field.classList.remove('is-invalid');
       errorEl.textContent = '';
       errorEl.hidden = true;
     }
+  };
+
+  const validateRequired = (field, label) => {
+    if (field.tagName === 'SELECT') {
+      return field.value ? '' : `${label} is required.`;
+    }
+
+    if (field.type === 'checkbox' || field.type === 'radio') {
+      return field.checked ? '' : `${label} is required.`;
+    }
+
+    return field.value.trim() ? '' : `${label} is required.`;
   };
 
   const createRow = (labelText, field, errorEl) => {
@@ -67,7 +49,7 @@ export default function decorate(block) {
     const controlWrap = document.createElement('div');
     controlWrap.className = 'form-control-wrap';
     controlWrap.appendChild(field);
-    if (errorEl) controlWrap.appendChild(errorEl);
+    controlWrap.appendChild(errorEl);
 
     wrapper.appendChild(label);
     wrapper.appendChild(controlWrap);
@@ -106,20 +88,14 @@ export default function decorate(block) {
     errorEl.className = 'field-error';
     errorEl.hidden = true;
 
-    let isOpen = false;
-
     const closeMenu = () => {
-      isOpen = false;
       menu.hidden = true;
       input.setAttribute('aria-expanded', 'false');
     };
 
     const openMenu = () => {
-      if (!isOpen) {
-        isOpen = true;
-        menu.hidden = false;
-        input.setAttribute('aria-expanded', 'true');
-      }
+      menu.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
     };
 
     const renderMenu = (query) => {
@@ -167,20 +143,21 @@ export default function decorate(block) {
     };
 
     input.addEventListener('focus', () => {
-      // Do not show all emails on focus. Only show matches after typing.
-      if (input.value.trim()) renderMenu(input.value);
+      if (input.value.trim()) {
+        renderMenu(input.value);
+      }
     });
 
     input.addEventListener('input', () => {
       input.setCustomValidity('');
       setFieldError(input, errorEl, '');
       renderMenu(input.value);
-      clearSummary();
     });
 
     input.addEventListener('blur', () => {
       window.setTimeout(() => {
         const value = input.value.trim();
+
         if (!value) {
           input.setCustomValidity('Email is required.');
           setFieldError(input, errorEl, 'Email is required.');
@@ -188,8 +165,7 @@ export default function decorate(block) {
           return;
         }
 
-        const valid = options.includes(value);
-        if (!valid) {
+        if (!options.includes(value)) {
           input.setCustomValidity('Please select a valid email from the list.');
           setFieldError(input, errorEl, 'Please select a valid email from the list.');
         } else {
@@ -213,7 +189,6 @@ export default function decorate(block) {
     wrapper.appendChild(controlWrap);
 
     state.fields.push({
-      name,
       label: labelText,
       field: input,
       errorEl,
@@ -226,17 +201,17 @@ export default function decorate(block) {
 
   const validateField = (item) => {
     const { field, label, kind, options, errorEl } = item;
-    const value = field.value.trim();
     let message = '';
 
-    if (!value) {
+    if (!field.value || !field.value.toString().trim()) {
       message = `${label} is required.`;
     } else if (kind === 'email') {
+      const value = field.value.trim();
       if (!options.includes(value)) {
         message = 'Please select a valid email from the list.';
       }
-    } else if (field.type === 'number') {
-      const num = Number(value);
+    } else if (kind === 'number') {
+      const num = Number(field.value);
       if (Number.isNaN(num)) {
         message = `${label} must be a number.`;
       } else if (num < 0) {
@@ -253,23 +228,16 @@ export default function decorate(block) {
     state.fields.forEach((item) => {
       const message = validateField(item);
       if (message) {
-        errors.push({
-          label: item.label,
-          message,
-          field: item.field,
-        });
+        errors.push({ ...item, message });
       }
     });
     return errors;
   };
 
   const handleAction = () => {
-    clearSummary();
-
     const errors = validateAll();
-    if (errors.length) {
-      showSummary(errors);
 
+    if (errors.length) {
       const firstInvalid = errors[0]?.field;
       if (firstInvalid) {
         firstInvalid.focus();
@@ -302,8 +270,6 @@ export default function decorate(block) {
     block.replaceChildren(success);
   };
 
-  let submitRow = null;
-
   rows.forEach((row) => {
     const labelText = row.children[0]?.textContent.trim();
     const valueText = row.children[1]?.textContent.trim() || '';
@@ -334,7 +300,6 @@ export default function decorate(block) {
       field.required = true;
 
       state.fields.push({
-        name: field.name,
         label: labelText,
         field,
         errorEl,
@@ -348,7 +313,6 @@ export default function decorate(block) {
       field.required = true;
 
       state.fields.push({
-        name: field.name,
         label: labelText,
         field,
         errorEl,
@@ -365,7 +329,6 @@ export default function decorate(block) {
       field.required = true;
 
       state.fields.push({
-        name: field.name,
         label: labelText,
         field,
         errorEl,
@@ -396,7 +359,6 @@ export default function decorate(block) {
         });
 
       state.fields.push({
-        name: field.name,
         label: labelText,
         field,
         errorEl,
@@ -421,22 +383,17 @@ export default function decorate(block) {
     }
 
     field.addEventListener('input', () => {
-      clearSummary();
       setFieldError(field, errorEl, '');
     });
 
     field.addEventListener('change', () => {
-      clearSummary();
       setFieldError(field, errorEl, '');
     });
 
-    const rowEl = createRow(labelText, field, errorEl);
-    form.appendChild(rowEl);
+    form.appendChild(createRow(labelText, field, errorEl));
   });
 
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-  });
+  form.appendChild(document.createElement('div')); // spacer if needed
 
   if (state.submitButton) {
     const submitWrap = document.createElement('div');
@@ -445,6 +402,9 @@ export default function decorate(block) {
     form.appendChild(submitWrap);
   }
 
-  form.prepend(errorSummary);
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+  });
+
   block.replaceChildren(form);
 }

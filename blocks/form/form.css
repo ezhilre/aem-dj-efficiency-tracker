@@ -103,3 +103,15 @@
 .form-row-submit button:active {
   transform: scale(0.98);
 }
+
+.is-invalid {
+  border: 1px solid #d93025 !important;
+  box-shadow: 0 0 0 2px rgba(217, 48, 37, 0.12);
+}
+
+.field-error {
+  margin-top: 8px;
+  color: #d93025;
+  font-size: 14px;
+  line-height: 1.4;
+}
