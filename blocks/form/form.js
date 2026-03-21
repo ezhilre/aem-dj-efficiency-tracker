@@ -7,6 +7,7 @@ export default function decorate(block) {
     - Adds validation
     - Adds the searchable email picker
     - Moves the submit button to the end
+    - Replaces the form with a success view after submit
   */
   const form = document.createElement('form');
   form.className = 'weekly-report-form';
@@ -189,7 +190,7 @@ export default function decorate(block) {
         .join('');
     };
 
-    // Convert "varun.khanna86@gmail.com" into "Varun Khanna86"
+    // Convert "varun.khanna86@gmail.com" into a friendly display name
     const getDisplayName = (email) => {
       const localPart = email.split('@')[0] || email;
       return localPart
@@ -338,10 +339,69 @@ export default function decorate(block) {
   };
 
   /*
+    renderSuccessView()
+    Builds the post-submit screen.
+    It shows:
+    - a success headline
+    - a short summary sentence
+    - the submitted values in a clean list
+  */
+  const renderSuccessView = (data) => {
+    const success = document.createElement('div');
+    success.className = 'form-success';
+
+    const title = document.createElement('h2');
+    title.textContent = 'Weekly report captured successfully';
+
+    const summary = document.createElement('p');
+    const name = data.name || 'You';
+    const project = data.project || 'your project';
+    const hours = data['hours-saved'] || '0';
+    summary.textContent = `${name} submitted a weekly report for ${project} and logged ${hours} hours saved.`;
+
+    const details = document.createElement('div');
+    details.className = 'form-success-details';
+
+    const items = [
+      ['Name', data.name],
+      ['Email', data['email-address']],
+      ['LDAP', data.ldap],
+      ['Project', data.project],
+      ['From Date', data['from-date']],
+      ['To Date', data['to-date']],
+      ['Hours Saved', data['hours-saved']],
+      ['Accelerator Used', data['accelerator-used']],
+    ];
+
+    items.forEach(([label, value]) => {
+      const row = document.createElement('div');
+      row.className = 'form-success-row';
+
+      const key = document.createElement('span');
+      key.className = 'form-success-key';
+      key.textContent = label;
+
+      const val = document.createElement('span');
+      val.className = 'form-success-value';
+      val.textContent = value || '-';
+
+      row.appendChild(key);
+      row.appendChild(val);
+      details.appendChild(row);
+    });
+
+    success.appendChild(title);
+    success.appendChild(summary);
+    success.appendChild(details);
+
+    return success;
+  };
+
+  /*
     handleSubmit()
     Runs full validation.
     If anything is invalid, stop and focus the first invalid field.
-    If valid, push data to adobeDataLayer.
+    If valid, push data to adobeDataLayer and show the success summary.
   */
   const handleSubmit = () => {
     const errors = validateAll();
@@ -373,11 +433,7 @@ export default function decorate(block) {
 
     console.log('✅ adobeDataLayer push:', payload);
 
-    const success = document.createElement('div');
-    success.className = 'form-success';
-    success.innerHTML = '<h2>Weekly report captured successfully</h2>';
-
-    block.replaceChildren(success);
+    block.replaceChildren(renderSuccessView(data));
   };
 
   /*
