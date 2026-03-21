@@ -1,17 +1,34 @@
 export default function decorate(block) {
+  /*
+    Main form setup:
+    - Creates the form element
+    - Reads each row from the block content
+    - Converts each row into a real field
+    - Adds validation
+    - Adds the searchable email picker
+    - Moves the submit button to the end
+  */
   const form = document.createElement('form');
   form.className = 'weekly-report-form';
   form.noValidate = true;
 
   const rows = [...block.children];
 
-  const normalizeName = (label) => label.toLowerCase().trim().replace(/\s+/g, '-');
-
   const state = {
     fields: [],
     submitButton: null,
   };
 
+  // Convert a label like "From Date" into "from-date"
+  const normalizeName = (label) => label.toLowerCase().trim().replace(/\s+/g, '-');
+
+  /*
+    setFieldError()
+    Applies or clears the visual error state for a field.
+    - Adds red border when invalid
+    - Shows inline error text
+    - Clears both when valid
+  */
   const setFieldError = (field, errorEl, message) => {
     if (message) {
       field.setAttribute('aria-invalid', 'true');
@@ -26,18 +43,11 @@ export default function decorate(block) {
     }
   };
 
-  const validateRequired = (field, label) => {
-    if (field.tagName === 'SELECT') {
-      return field.value ? '' : `${label} is required.`;
-    }
-
-    if (field.type === 'checkbox' || field.type === 'radio') {
-      return field.checked ? '' : `${label} is required.`;
-    }
-
-    return field.value.trim() ? '' : `${label} is required.`;
-  };
-
+  /*
+    createRow()
+    Builds a standard form row:
+    label on the left, control on the right, error text below the control.
+  */
   const createRow = (labelText, field, errorEl) => {
     const wrapper = document.createElement('div');
     wrapper.className = 'form-row';
@@ -57,6 +67,82 @@ export default function decorate(block) {
     return wrapper;
   };
 
+  /*
+    registerField()
+    Stores every field in state so that validation can be run on all fields
+    before submit.
+  */
+  const registerField = ({ label, field, errorEl, kind, options = [] }) => {
+    state.fields.push({
+      label,
+      field,
+      errorEl,
+      kind,
+      options,
+    });
+
+    field.addEventListener('input', () => {
+      setFieldError(field, errorEl, '');
+    });
+
+    field.addEventListener('change', () => {
+      setFieldError(field, errorEl, '');
+    });
+  };
+
+  /*
+    validateField()
+    Validates one field and returns an error message if invalid.
+    This is used by validateAll().
+  */
+  const validateField = (item) => {
+    const { field, label, kind, options, errorEl } = item;
+    let message = '';
+
+    const value = field.value != null ? String(field.value).trim() : '';
+
+    if (!value) {
+      message = `${label} is required.`;
+    } else if (kind === 'email') {
+      if (!options.includes(value)) {
+        message = 'Please select a valid email from the list.';
+      }
+    } else if (kind === 'number') {
+      const num = Number(value);
+      if (Number.isNaN(num)) {
+        message = `${label} must be a number.`;
+      } else if (num < 0) {
+        message = `${label} must be 0 or greater.`;
+      }
+    }
+
+    setFieldError(field, errorEl, message);
+    return message;
+  };
+
+  /*
+    validateAll()
+    Runs validation on every registered field.
+    Returns an array of all invalid fields.
+  */
+  const validateAll = () => {
+    const errors = [];
+    state.fields.forEach((item) => {
+      const message = validateField(item);
+      if (message) errors.push({ ...item, message });
+    });
+    return errors;
+  };
+
+  /*
+    createSearchableEmailSelect()
+    Creates the custom searchable email input.
+    Behavior:
+    - user types into the input
+    - matching emails are shown in a modern dropdown
+    - selecting one fills the input
+    - only exact values from the source list are accepted
+  */
   const createSearchableEmailSelect = ({ labelText, name, options = [] }) => {
     const wrapper = document.createElement('div');
     wrapper.className = 'form-row form-row-searchable';
@@ -88,6 +174,31 @@ export default function decorate(block) {
     errorEl.className = 'field-error';
     errorEl.hidden = true;
 
+    // Create initials from the email local-part for the avatar circle
+    const getInitials = (email) => {
+      const localPart = email.split('@')[0] || '';
+      const parts = localPart.split(/[._-]/).filter(Boolean);
+
+      if (!parts.length) {
+        return email.slice(0, 2).toUpperCase();
+      }
+
+      return parts
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() || '')
+        .join('');
+    };
+
+    // Convert "varun.khanna86@gmail.com" into "Varun Khanna86"
+    const getDisplayName = (email) => {
+      const localPart = email.split('@')[0] || email;
+      return localPart
+        .split(/[._-]/)
+        .filter(Boolean)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+    };
+
     const closeMenu = () => {
       menu.hidden = true;
       input.setAttribute('aria-expanded', 'false');
@@ -98,6 +209,11 @@ export default function decorate(block) {
       input.setAttribute('aria-expanded', 'true');
     };
 
+    /*
+      renderMenu()
+      Filters emails based on user input and renders modern result cards.
+      No dropdown is shown until the user types something.
+    */
     const renderMenu = (query) => {
       const value = query.trim().toLowerCase();
       menu.replaceChildren();
@@ -122,8 +238,28 @@ export default function decorate(block) {
         const option = document.createElement('button');
         option.type = 'button';
         option.className = 'searchable-select-option';
-        option.textContent = opt;
         option.setAttribute('role', 'option');
+
+        const avatar = document.createElement('div');
+        avatar.className = 'searchable-select-option__avatar';
+        avatar.textContent = getInitials(opt);
+
+        const content = document.createElement('div');
+        content.className = 'searchable-select-option__content';
+
+        const emailLine = document.createElement('div');
+        emailLine.className = 'searchable-select-option__email';
+        emailLine.textContent = opt;
+
+        const metaLine = document.createElement('div');
+        metaLine.className = 'searchable-select-option__meta';
+        metaLine.textContent = `Select ${getDisplayName(opt)}`;
+
+        content.appendChild(emailLine);
+        content.appendChild(metaLine);
+
+        option.appendChild(avatar);
+        option.appendChild(content);
 
         option.addEventListener('mousedown', (e) => {
           e.preventDefault();
@@ -143,6 +279,8 @@ export default function decorate(block) {
     };
 
     input.addEventListener('focus', () => {
+      // Do not show all items on focus.
+      // Only show suggestions after the user starts typing.
       if (input.value.trim()) {
         renderMenu(input.value);
       }
@@ -188,7 +326,7 @@ export default function decorate(block) {
     wrapper.appendChild(label);
     wrapper.appendChild(controlWrap);
 
-    state.fields.push({
+    registerField({
       label: labelText,
       field: input,
       errorEl,
@@ -199,42 +337,13 @@ export default function decorate(block) {
     return wrapper;
   };
 
-  const validateField = (item) => {
-    const { field, label, kind, options, errorEl } = item;
-    let message = '';
-
-    if (!field.value || !field.value.toString().trim()) {
-      message = `${label} is required.`;
-    } else if (kind === 'email') {
-      const value = field.value.trim();
-      if (!options.includes(value)) {
-        message = 'Please select a valid email from the list.';
-      }
-    } else if (kind === 'number') {
-      const num = Number(field.value);
-      if (Number.isNaN(num)) {
-        message = `${label} must be a number.`;
-      } else if (num < 0) {
-        message = `${label} must be 0 or greater.`;
-      }
-    }
-
-    setFieldError(field, errorEl, message);
-    return message;
-  };
-
-  const validateAll = () => {
-    const errors = [];
-    state.fields.forEach((item) => {
-      const message = validateField(item);
-      if (message) {
-        errors.push({ ...item, message });
-      }
-    });
-    return errors;
-  };
-
-  const handleAction = () => {
+  /*
+    handleSubmit()
+    Runs full validation.
+    If anything is invalid, stop and focus the first invalid field.
+    If valid, push data to adobeDataLayer.
+  */
+  const handleSubmit = () => {
     const errors = validateAll();
 
     if (errors.length) {
@@ -267,9 +376,14 @@ export default function decorate(block) {
     const success = document.createElement('div');
     success.className = 'form-success';
     success.innerHTML = '<h2>Weekly report captured successfully</h2>';
+
     block.replaceChildren(success);
   };
 
+  /*
+    Main block parsing loop:
+    Reads each row from the source block and converts it into the right field type.
+  */
   rows.forEach((row) => {
     const labelText = row.children[0]?.textContent.trim();
     const valueText = row.children[1]?.textContent.trim() || '';
@@ -281,7 +395,7 @@ export default function decorate(block) {
       button.type = 'button';
       button.textContent = labelText;
       button.className = 'form-submit-button';
-      button.addEventListener('click', handleAction);
+      button.addEventListener('click', handleSubmit);
       state.submitButton = button;
       return;
     }
@@ -299,26 +413,36 @@ export default function decorate(block) {
       field.placeholder = `Enter ${labelText.toLowerCase()}`;
       field.required = true;
 
-      state.fields.push({
+      registerField({
         label: labelText,
         field,
         errorEl,
         kind: 'text',
       });
-    } else if (labelText === 'From Date' || labelText === 'To Date') {
+
+      form.appendChild(createRow(labelText, field, errorEl));
+      return;
+    }
+
+    if (labelText === 'From Date' || labelText === 'To Date') {
       field = document.createElement('input');
       field.type = 'date';
       field.name = normalizeName(labelText);
       field.id = field.name;
       field.required = true;
 
-      state.fields.push({
+      registerField({
         label: labelText,
         field,
         errorEl,
         kind: 'date',
       });
-    } else if (labelText === 'Hours Saved') {
+
+      form.appendChild(createRow(labelText, field, errorEl));
+      return;
+    }
+
+    if (labelText === 'Hours Saved') {
       field = document.createElement('input');
       field.type = 'number';
       field.step = '0.1';
@@ -328,13 +452,18 @@ export default function decorate(block) {
       field.placeholder = 'Enter hours saved';
       field.required = true;
 
-      state.fields.push({
+      registerField({
         label: labelText,
         field,
         errorEl,
         kind: 'number',
       });
-    } else if (labelText === 'Accelerator Used') {
+
+      form.appendChild(createRow(labelText, field, errorEl));
+      return;
+    }
+
+    if (labelText === 'Accelerator Used') {
       field = document.createElement('select');
       field.name = 'accelerator-used';
       field.id = field.name;
@@ -358,43 +487,37 @@ export default function decorate(block) {
           field.appendChild(option);
         });
 
-      state.fields.push({
+      registerField({
         label: labelText,
         field,
         errorEl,
         kind: 'select',
       });
-    } else if (labelText === 'Email') {
+
+      form.appendChild(createRow(labelText, field, errorEl));
+      return;
+    }
+
+    if (labelText === 'Email') {
       const emails = valueText
         .split(/\n+/)
         .map((email) => email.trim())
         .filter(Boolean);
 
-      const emailRow = createSearchableEmailSelect({
-        labelText,
-        name: 'email-address',
-        options: emails,
-      });
-
-      form.appendChild(emailRow);
-      return;
-    } else {
-      return;
+      form.appendChild(
+        createSearchableEmailSelect({
+          labelText,
+          name: 'email-address',
+          options: emails,
+        }),
+      );
     }
-
-    field.addEventListener('input', () => {
-      setFieldError(field, errorEl, '');
-    });
-
-    field.addEventListener('change', () => {
-      setFieldError(field, errorEl, '');
-    });
-
-    form.appendChild(createRow(labelText, field, errorEl));
   });
 
-  form.appendChild(document.createElement('div')); // spacer if needed
-
+  /*
+    Submit button is appended at the very end of the form
+    so it always appears after every field.
+  */
   if (state.submitButton) {
     const submitWrap = document.createElement('div');
     submitWrap.className = 'form-row form-row-submit';
