@@ -7,7 +7,56 @@ export default function decorate(block) {
 
   const normalizeName = (label) => label.toLowerCase().trim().replace(/\s+/g, '-');
 
-  const createRow = (labelText, field) => {
+  const state = {
+    fields: [],
+    submitButton: null,
+  };
+
+  const errorSummary = document.createElement('div');
+  errorSummary.className = 'form-error-summary';
+  errorSummary.hidden = true;
+  errorSummary.setAttribute('role', 'alert');
+  errorSummary.setAttribute('aria-live', 'polite');
+
+  const clearSummary = () => {
+    errorSummary.hidden = true;
+    errorSummary.replaceChildren();
+  };
+
+  const showSummary = (errors) => {
+    errorSummary.hidden = false;
+    errorSummary.replaceChildren();
+
+    const title = document.createElement('div');
+    title.className = 'form-error-summary-title';
+    title.textContent = 'Please fix the errors below before continuing.';
+
+    const list = document.createElement('ul');
+    list.className = 'form-error-summary-list';
+
+    errors.forEach(({ label, message }) => {
+      const item = document.createElement('li');
+      item.textContent = `${label}: ${message}`;
+      list.appendChild(item);
+    });
+
+    errorSummary.appendChild(title);
+    errorSummary.appendChild(list);
+  };
+
+  const setFieldError = (field, errorEl, message) => {
+    if (message) {
+      field.setAttribute('aria-invalid', 'true');
+      errorEl.textContent = message;
+      errorEl.hidden = false;
+    } else {
+      field.removeAttribute('aria-invalid');
+      errorEl.textContent = '';
+      errorEl.hidden = true;
+    }
+  };
+
+  const createRow = (labelText, field, errorEl) => {
     const wrapper = document.createElement('div');
     wrapper.className = 'form-row';
 
@@ -15,32 +64,33 @@ export default function decorate(block) {
     label.textContent = labelText;
     label.setAttribute('for', field.id);
 
+    const controlWrap = document.createElement('div');
+    controlWrap.className = 'form-control-wrap';
+    controlWrap.appendChild(field);
+    if (errorEl) controlWrap.appendChild(errorEl);
+
     wrapper.appendChild(label);
-    wrapper.appendChild(field);
+    wrapper.appendChild(controlWrap);
 
     return wrapper;
   };
 
-  const createSearchableSelect = ({
-    labelText,
-    name,
-    options = [],
-    placeholder = `Select ${labelText.toLowerCase()}`,
-  }) => {
+  const createSearchableEmailSelect = ({ labelText, name, options = [] }) => {
     const wrapper = document.createElement('div');
     wrapper.className = 'form-row form-row-searchable';
 
     const label = document.createElement('label');
     label.textContent = labelText;
+    label.setAttribute('for', name);
 
-    const control = document.createElement('div');
-    control.className = 'searchable-select';
+    const controlWrap = document.createElement('div');
+    controlWrap.className = 'searchable-select-wrap';
 
     const input = document.createElement('input');
     input.type = 'text';
     input.id = name;
     input.name = name;
-    input.placeholder = placeholder;
+    input.placeholder = 'Search and select email';
     input.autocomplete = 'off';
     input.required = true;
     input.setAttribute('aria-autocomplete', 'list');
@@ -52,41 +102,45 @@ export default function decorate(block) {
     menu.hidden = true;
     menu.setAttribute('role', 'listbox');
 
-    const emptyState = document.createElement('div');
-    emptyState.className = 'searchable-select-empty';
-    emptyState.textContent = 'No matching emails';
-    emptyState.hidden = true;
+    const errorEl = document.createElement('div');
+    errorEl.className = 'field-error';
+    errorEl.hidden = true;
 
-    const setValidity = () => {
-      const value = input.value.trim();
-      const isValid = options.includes(value);
-      input.setCustomValidity(isValid ? '' : 'Please select a valid email from the list');
-      return isValid;
-    };
+    let isOpen = false;
 
     const closeMenu = () => {
+      isOpen = false;
       menu.hidden = true;
       input.setAttribute('aria-expanded', 'false');
     };
 
     const openMenu = () => {
-      menu.hidden = false;
-      input.setAttribute('aria-expanded', 'true');
+      if (!isOpen) {
+        isOpen = true;
+        menu.hidden = false;
+        input.setAttribute('aria-expanded', 'true');
+      }
     };
 
-    const renderOptions = (filterText = '') => {
-      const query = filterText.trim().toLowerCase();
+    const renderMenu = (query) => {
+      const value = query.trim().toLowerCase();
       menu.replaceChildren();
 
-      const filtered = options.filter((opt) => opt.toLowerCase().includes(query));
-
-      if (!filtered.length) {
-        emptyState.hidden = false;
-        menu.appendChild(emptyState);
+      if (!value) {
+        closeMenu();
         return;
       }
 
-      emptyState.hidden = true;
+      const filtered = options.filter((opt) => opt.toLowerCase().includes(value));
+
+      if (!filtered.length) {
+        const empty = document.createElement('div');
+        empty.className = 'searchable-select-empty';
+        empty.textContent = 'No matching emails';
+        menu.appendChild(empty);
+        openMenu();
+        return;
+      }
 
       filtered.forEach((opt) => {
         const option = document.createElement('button');
@@ -94,73 +148,133 @@ export default function decorate(block) {
         option.className = 'searchable-select-option';
         option.textContent = opt;
         option.setAttribute('role', 'option');
+
         option.addEventListener('mousedown', (e) => {
-          e.preventDefault(); // keep focus on input
+          e.preventDefault();
         });
+
         option.addEventListener('click', () => {
           input.value = opt;
-          input.dispatchEvent(new Event('input', { bubbles: true }));
           input.setCustomValidity('');
+          setFieldError(input, errorEl, '');
           closeMenu();
         });
+
         menu.appendChild(option);
       });
+
+      openMenu();
     };
 
     input.addEventListener('focus', () => {
-      renderOptions(input.value);
-      openMenu();
+      // Do not show all emails on focus. Only show matches after typing.
+      if (input.value.trim()) renderMenu(input.value);
     });
 
     input.addEventListener('input', () => {
-      renderOptions(input.value);
-      openMenu();
-      setValidity();
+      input.setCustomValidity('');
+      setFieldError(input, errorEl, '');
+      renderMenu(input.value);
+      clearSummary();
     });
 
     input.addEventListener('blur', () => {
       window.setTimeout(() => {
-        setValidity();
+        const value = input.value.trim();
+        if (!value) {
+          input.setCustomValidity('Email is required.');
+          setFieldError(input, errorEl, 'Email is required.');
+          closeMenu();
+          return;
+        }
+
+        const valid = options.includes(value);
+        if (!valid) {
+          input.setCustomValidity('Please select a valid email from the list.');
+          setFieldError(input, errorEl, 'Please select a valid email from the list.');
+        } else {
+          input.setCustomValidity('');
+          setFieldError(input, errorEl, '');
+        }
+
+        closeMenu();
       }, 120);
     });
 
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closeMenu();
-      }
-    });
-
     document.addEventListener('click', (e) => {
-      if (!wrapper.contains(e.target)) {
-        closeMenu();
-        setValidity();
-      }
+      if (!wrapper.contains(e.target)) closeMenu();
     });
 
-    label.setAttribute('for', name);
-
-    control.appendChild(input);
-    control.appendChild(menu);
+    controlWrap.appendChild(input);
+    controlWrap.appendChild(menu);
+    controlWrap.appendChild(errorEl);
 
     wrapper.appendChild(label);
-    wrapper.appendChild(control);
+    wrapper.appendChild(controlWrap);
 
-    return { wrapper, input, setValidity };
+    state.fields.push({
+      name,
+      label: labelText,
+      field: input,
+      errorEl,
+      kind: 'email',
+      options,
+    });
+
+    return wrapper;
+  };
+
+  const validateField = (item) => {
+    const { field, label, kind, options, errorEl } = item;
+    const value = field.value.trim();
+    let message = '';
+
+    if (!value) {
+      message = `${label} is required.`;
+    } else if (kind === 'email') {
+      if (!options.includes(value)) {
+        message = 'Please select a valid email from the list.';
+      }
+    } else if (field.type === 'number') {
+      const num = Number(value);
+      if (Number.isNaN(num)) {
+        message = `${label} must be a number.`;
+      } else if (num < 0) {
+        message = `${label} must be 0 or greater.`;
+      }
+    }
+
+    setFieldError(field, errorEl, message);
+    return message;
+  };
+
+  const validateAll = () => {
+    const errors = [];
+    state.fields.forEach((item) => {
+      const message = validateField(item);
+      if (message) {
+        errors.push({
+          label: item.label,
+          message,
+          field: item.field,
+        });
+      }
+    });
+    return errors;
   };
 
   const handleAction = () => {
-    const fields = [...form.querySelectorAll('input, select, textarea')];
-    let firstInvalid = null;
+    clearSummary();
 
-    fields.forEach((field) => {
-      if (typeof field.checkValidity === 'function' && !field.checkValidity()) {
-        if (!firstInvalid) firstInvalid = field;
+    const errors = validateAll();
+    if (errors.length) {
+      showSummary(errors);
+
+      const firstInvalid = errors[0]?.field;
+      if (firstInvalid) {
+        firstInvalid.focus();
+        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-    });
-
-    if (firstInvalid) {
-      firstInvalid.reportValidity();
-      firstInvalid.focus();
       return;
     }
 
@@ -181,7 +295,14 @@ export default function decorate(block) {
     window.adobeDataLayer.push(payload);
 
     console.log('✅ adobeDataLayer push:', payload);
+
+    const success = document.createElement('div');
+    success.className = 'form-success';
+    success.innerHTML = '<h2>Weekly report captured successfully</h2>';
+    block.replaceChildren(success);
   };
+
+  let submitRow = null;
 
   rows.forEach((row) => {
     const labelText = row.children[0]?.textContent.trim();
@@ -189,25 +310,50 @@ export default function decorate(block) {
 
     if (!labelText) return;
 
-    let field = null;
+    if (labelText === 'Submit Weekly Report') {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = labelText;
+      button.className = 'form-submit-button';
+      button.addEventListener('click', handleAction);
+      state.submitButton = button;
+      return;
+    }
 
-    if (
-      labelText === 'Name' ||
-      labelText === 'Project' ||
-      labelText === 'LDAP'
-    ) {
+    let field = null;
+    const errorEl = document.createElement('div');
+    errorEl.className = 'field-error';
+    errorEl.hidden = true;
+
+    if (labelText === 'Name' || labelText === 'Project' || labelText === 'LDAP') {
       field = document.createElement('input');
       field.type = 'text';
       field.name = normalizeName(labelText);
       field.id = field.name;
       field.placeholder = `Enter ${labelText.toLowerCase()}`;
       field.required = true;
+
+      state.fields.push({
+        name: field.name,
+        label: labelText,
+        field,
+        errorEl,
+        kind: 'text',
+      });
     } else if (labelText === 'From Date' || labelText === 'To Date') {
       field = document.createElement('input');
       field.type = 'date';
       field.name = normalizeName(labelText);
       field.id = field.name;
       field.required = true;
+
+      state.fields.push({
+        name: field.name,
+        label: labelText,
+        field,
+        errorEl,
+        kind: 'date',
+      });
     } else if (labelText === 'Hours Saved') {
       field = document.createElement('input');
       field.type = 'number';
@@ -217,6 +363,14 @@ export default function decorate(block) {
       field.id = field.name;
       field.placeholder = 'Enter hours saved';
       field.required = true;
+
+      state.fields.push({
+        name: field.name,
+        label: labelText,
+        field,
+        errorEl,
+        kind: 'number',
+      });
     } else if (labelText === 'Accelerator Used') {
       field = document.createElement('select');
       field.name = 'accelerator-used';
@@ -240,49 +394,57 @@ export default function decorate(block) {
           option.textContent = opt;
           field.appendChild(option);
         });
+
+      state.fields.push({
+        name: field.name,
+        label: labelText,
+        field,
+        errorEl,
+        kind: 'select',
+      });
     } else if (labelText === 'Email') {
       const emails = valueText
         .split(/\n+/)
         .map((email) => email.trim())
         .filter(Boolean);
 
-      const searchable = createSearchableSelect({
+      const emailRow = createSearchableEmailSelect({
         labelText,
         name: 'email-address',
         options: emails,
-        placeholder: 'Search and select email',
       });
 
-      form.appendChild(searchable.wrapper);
+      form.appendChild(emailRow);
       return;
-    } else if (labelText === 'Submit Weekly Report') {
-      field = document.createElement('button');
-      field.type = 'button';
-      field.textContent = labelText;
-      field.className = 'form-submit-button';
-      field.addEventListener('click', handleAction);
-    }
-
-    if (!field) return;
-
-    if (field.type !== 'button') {
-      field.required = true;
-    }
-
-    if (field.type === 'button') {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'form-row form-row-submit';
-      wrapper.appendChild(field);
-      form.appendChild(wrapper);
+    } else {
       return;
     }
 
-    form.appendChild(createRow(labelText, field));
+    field.addEventListener('input', () => {
+      clearSummary();
+      setFieldError(field, errorEl, '');
+    });
+
+    field.addEventListener('change', () => {
+      clearSummary();
+      setFieldError(field, errorEl, '');
+    });
+
+    const rowEl = createRow(labelText, field, errorEl);
+    form.appendChild(rowEl);
   });
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
   });
 
+  if (state.submitButton) {
+    const submitWrap = document.createElement('div');
+    submitWrap.className = 'form-row form-row-submit';
+    submitWrap.appendChild(state.submitButton);
+    form.appendChild(submitWrap);
+  }
+
+  form.prepend(errorSummary);
   block.replaceChildren(form);
 }
