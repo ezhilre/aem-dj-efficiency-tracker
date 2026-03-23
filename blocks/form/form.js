@@ -8,6 +8,7 @@ export default function decorate(block) {
     - Adds the searchable email picker
     - Moves the submit button to the end
     - Replaces the form with a success view after submit
+    - Moves the WebSDK script into <head>
   */
   const form = document.createElement('form');
   form.className = 'weekly-report-form';
@@ -22,6 +23,33 @@ export default function decorate(block) {
 
   // Convert a label like "From Date" into "from-date"
   const normalizeName = (label) => label.toLowerCase().trim().replace(/\s+/g, '-');
+
+  /*
+    injectLaunchScript()
+    Takes the WebSDK URL from the block and injects it into <head>.
+    This keeps the config in content while loading the real script on the page.
+  */
+  const injectLaunchScript = (url) => {
+    if (!url) return;
+
+    const cleanUrl = String(url)
+      .replace(/%22/g, '')
+      .replace(/"/g, '')
+      .trim();
+
+    if (!cleanUrl) return;
+
+    const alreadyLoaded = document.querySelector(`script[src="${cleanUrl}"]`);
+    if (alreadyLoaded) return;
+
+    const script = document.createElement('script');
+    script.src = cleanUrl;
+    script.async = true;
+
+    document.head.appendChild(script);
+
+    console.log('✅ Adobe Launch loaded:', cleanUrl);
+  };
 
   /*
     setFieldError()
@@ -442,9 +470,18 @@ export default function decorate(block) {
   */
   rows.forEach((row) => {
     const labelText = row.children[0]?.textContent.trim();
-    const valueText = row.children[1]?.textContent.trim() || '';
+    const valueEl = row.children[1];
+    const valueText = valueEl?.textContent.trim() || '';
 
     if (!labelText) return;
+
+    // Move the WebSDK script into <head> and do not render this row.
+    if (labelText === 'WebSDK') {
+      const link = valueEl?.querySelector('a');
+      const url = link?.href || valueText;
+      injectLaunchScript(url);
+      return;
+    }
 
     if (labelText === 'Submit Weekly Report') {
       const button = document.createElement('button');
