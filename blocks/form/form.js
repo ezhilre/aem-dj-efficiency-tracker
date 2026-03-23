@@ -453,7 +453,7 @@ export default function decorate(block) {
       ldap: data['ldap'] || '',
       projectName: data['project'] || '',
       toDate: data['to-date'] || '',
-      eventType: 'card.submitted',
+      event: 'card.submitted',
     };
 
     window.adobeDataLayer = window.adobeDataLayer || [];
