@@ -511,7 +511,7 @@
 .form {
   position: relative;
   z-index: 3;
-  margin-top: -180px !important;
+  margin-top: -220px !important;
 }
 
 /* Remove extra space inside the block */
