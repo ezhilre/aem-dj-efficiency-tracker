@@ -72,6 +72,18 @@ export default function decorate(block) {
     }
   };
 
+  const clearFieldError = (field, errorEl) => {
+    field.removeAttribute('aria-invalid');
+    field.classList.remove('is-invalid');
+    errorEl.textContent = '';
+    errorEl.hidden = true;
+  };
+
+  const normalizeList = (valueText) =>
+    valueText
+      .split(/[\n,]+/)
+      .map((item) => item.trim())
+      .filter(Boolean);
   /*
     createRow()
     Builds a standard form row:
@@ -143,12 +155,15 @@ export default function decorate(block) {
       } else if (num < 0) {
         message = `${label} must be 0 or greater.`;
       }
+    } else if (kind === 'multiselect') {
+      if (!value) {
+        message = `${label} is required.`;
+      }
     }
 
     setFieldError(field, errorEl, message);
     return message;
   };
-
   /*
     validateAll()
     Runs validation on every registered field.
@@ -203,14 +218,11 @@ export default function decorate(block) {
     errorEl.className = 'field-error';
     errorEl.hidden = true;
 
-    // Create initials from the email local-part for the avatar circle
     const getInitials = (email) => {
       const localPart = email.split('@')[0] || '';
       const parts = localPart.split(/[._-]/).filter(Boolean);
 
-      if (!parts.length) {
-        return email.slice(0, 2).toUpperCase();
-      }
+      if (!parts.length) return email.slice(0, 2).toUpperCase();
 
       return parts
         .slice(0, 2)
@@ -218,7 +230,6 @@ export default function decorate(block) {
         .join('');
     };
 
-    // Convert "varun.khanna86@gmail.com" into a friendly display name
     const getDisplayName = (email) => {
       const localPart = email.split('@')[0] || email;
       return localPart
@@ -238,11 +249,8 @@ export default function decorate(block) {
       input.setAttribute('aria-expanded', 'true');
     };
 
-    /*
-      renderMenu()
-      Filters emails based on user input and renders modern result cards.
-      No dropdown is shown until the user types something.
-    */
+    let selectedViaMenu = false;
+
     const renderMenu = (query) => {
       const value = query.trim().toLowerCase();
       menu.replaceChildren();
@@ -295,10 +303,17 @@ export default function decorate(block) {
         });
 
         option.addEventListener('click', () => {
+          selectedViaMenu = true;
           input.value = opt;
           input.setCustomValidity('');
-          setFieldError(input, errorEl, '');
+          clearFieldError(input, errorEl);
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
           closeMenu();
+
+          window.setTimeout(() => {
+            selectedViaMenu = false;
+          }, 0);
         });
 
         menu.appendChild(option);
@@ -308,8 +323,6 @@ export default function decorate(block) {
     };
 
     input.addEventListener('focus', () => {
-      // Do not show all items on focus.
-      // Only show suggestions after the user starts typing.
       if (input.value.trim()) {
         renderMenu(input.value);
       }
@@ -317,12 +330,16 @@ export default function decorate(block) {
 
     input.addEventListener('input', () => {
       input.setCustomValidity('');
-      setFieldError(input, errorEl, '');
+      clearFieldError(input, errorEl);
       renderMenu(input.value);
     });
 
     input.addEventListener('blur', () => {
       window.setTimeout(() => {
+        if (selectedViaMenu) {
+          return;
+        }
+
         const value = input.value.trim();
 
         if (!value) {
@@ -337,7 +354,7 @@ export default function decorate(block) {
           setFieldError(input, errorEl, 'Please select a valid email from the list.');
         } else {
           input.setCustomValidity('');
-          setFieldError(input, errorEl, '');
+          clearFieldError(input, errorEl);
         }
 
         closeMenu();
@@ -361,6 +378,236 @@ export default function decorate(block) {
       errorEl,
       kind: 'email',
       options,
+    });
+
+    return wrapper;
+  };
+
+  const createMultiSelectAccelerator = ({ labelText, name, options = [] }) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'form-row form-row-multiselect';
+
+    const label = document.createElement('label');
+    label.textContent = labelText;
+    label.setAttribute('for', `${name}-search`);
+
+    const controlWrap = document.createElement('div');
+    controlWrap.className = 'multi-select-wrap';
+
+    const selectedRow = document.createElement('div');
+    selectedRow.className = 'multi-select-selected';
+
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.id = `${name}-search`;
+    searchInput.placeholder = 'Search accelerators';
+    searchInput.autocomplete = 'off';
+
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = name;
+    hiddenInput.id = name;
+    hiddenInput.value = '';
+
+    const menu = document.createElement('div');
+    menu.className = 'multi-select-menu';
+    menu.hidden = true;
+    menu.setAttribute('role', 'listbox');
+
+    const errorEl = document.createElement('div');
+    errorEl.className = 'field-error';
+    errorEl.hidden = true;
+
+    let selected = [];
+
+    const syncValue = () => {
+      hiddenInput.value = selected.join(', ');
+      if (selected.length) {
+        clearFieldError(hiddenInput, errorEl);
+      }
+    };
+
+    const closeMenu = () => {
+      menu.hidden = true;
+      searchInput.setAttribute('aria-expanded', 'false');
+    };
+
+    const openMenu = () => {
+      menu.hidden = false;
+      searchInput.setAttribute('aria-expanded', 'true');
+    };
+
+    const removeItem = (value) => {
+      selected = selected.filter((item) => item !== value);
+      renderSelected();
+      syncValue();
+      renderMenu(searchInput.value);
+    };
+
+    const addItem = (value) => {
+      if (!selected.includes(value)) {
+        selected.push(value);
+        renderSelected();
+        syncValue();
+      }
+    };
+
+    const renderSelected = () => {
+      selectedRow.replaceChildren();
+
+      selected.forEach((value) => {
+        const chip = document.createElement('span');
+        chip.className = 'multi-select-chip';
+
+        const text = document.createElement('span');
+        text.className = 'multi-select-chip__text';
+        text.textContent = value;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'multi-select-chip__remove';
+        removeBtn.setAttribute('aria-label', `Remove ${value}`);
+        removeBtn.textContent = '×';
+
+        removeBtn.addEventListener('click', () => removeItem(value));
+
+        chip.appendChild(text);
+        chip.appendChild(removeBtn);
+        selectedRow.appendChild(chip);
+      });
+
+      searchInput.placeholder = selected.length
+        ? 'Add another accelerator'
+        : 'Search accelerators';
+    };
+
+    const renderMenu = (query) => {
+      const value = query.trim().toLowerCase();
+      menu.replaceChildren();
+
+      const filtered = value
+        ? options.filter((opt) => opt.toLowerCase().includes(value))
+        : options;
+
+      if (!filtered.length) {
+        const empty = document.createElement('div');
+        empty.className = 'multi-select-empty';
+        empty.textContent = 'No matching accelerators';
+        menu.appendChild(empty);
+        openMenu();
+        return;
+      }
+
+      filtered.forEach((opt) => {
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = 'multi-select-option';
+        option.setAttribute('role', 'option');
+        option.setAttribute('aria-selected', selected.includes(opt) ? 'true' : 'false');
+
+        if (selected.includes(opt)) {
+          option.classList.add('is-selected');
+        }
+
+        const left = document.createElement('span');
+        left.className = 'multi-select-option__left';
+
+        const check = document.createElement('span');
+        check.className = 'multi-select-option__check';
+        check.textContent = selected.includes(opt) ? '✓' : '';
+
+        const text = document.createElement('span');
+        text.className = 'multi-select-option__text';
+        text.textContent = opt;
+
+        left.appendChild(check);
+        left.appendChild(text);
+
+        option.appendChild(left);
+
+        option.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+        });
+
+        option.addEventListener('click', () => {
+          if (selected.includes(opt)) {
+            removeItem(opt);
+          } else {
+            addItem(opt);
+          }
+
+          clearFieldError(hiddenInput, errorEl);
+          searchInput.value = '';
+          renderMenu('');
+          searchInput.focus();
+        });
+
+        menu.appendChild(option);
+      });
+
+      openMenu();
+    };
+
+    searchInput.addEventListener('input', () => {
+      clearFieldError(hiddenInput, errorEl);
+      renderMenu(searchInput.value);
+    });
+
+    searchInput.addEventListener('focus', () => {
+      renderMenu(searchInput.value);
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !searchInput.value && selected.length) {
+        selected.pop();
+        renderSelected();
+        syncValue();
+        renderMenu('');
+      }
+
+      if (e.key === 'Escape') {
+        closeMenu();
+      }
+
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const firstOption = menu.querySelector('.multi-select-option');
+        if (firstOption) firstOption.click();
+      }
+    });
+
+    searchInput.addEventListener('blur', () => {
+      window.setTimeout(() => {
+        if (!selected.length) {
+          setFieldError(hiddenInput, errorEl, `${labelText} is required.`);
+        } else {
+          clearFieldError(hiddenInput, errorEl);
+        }
+        closeMenu();
+      }, 120);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!wrapper.contains(e.target)) closeMenu();
+    });
+
+    renderSelected();
+    syncValue();
+
+    controlWrap.appendChild(selectedRow);
+    controlWrap.appendChild(searchInput);
+    controlWrap.appendChild(menu);
+    controlWrap.appendChild(errorEl);
+    controlWrap.appendChild(hiddenInput);
+
+    wrapper.appendChild(label);
+    wrapper.appendChild(controlWrap);
+
+    registerField({
+      label: labelText,
+      field: hiddenInput,
+      errorEl,
+      kind: 'multiselect',
     });
 
     return wrapper;
@@ -557,45 +804,20 @@ export default function decorate(block) {
     }
 
     if (labelText === 'Accelerator Used') {
-      field = document.createElement('select');
-      field.name = 'accelerator-used';
-      field.id = field.name;
-      field.required = true;
+      const options = normalizeList(valueText);
 
-      const placeholder = document.createElement('option');
-      placeholder.value = '';
-      placeholder.textContent = 'Select accelerator';
-      placeholder.disabled = true;
-      placeholder.selected = true;
-      field.appendChild(placeholder);
-
-      valueText
-        .split(',')
-        .map((opt) => opt.trim())
-        .filter(Boolean)
-        .forEach((opt) => {
-          const option = document.createElement('option');
-          option.value = opt;
-          option.textContent = opt;
-          field.appendChild(option);
-        });
-
-      registerField({
-        label: labelText,
-        field,
-        errorEl,
-        kind: 'select',
-      });
-
-      form.appendChild(createRow(labelText, field, errorEl));
+      form.appendChild(
+        createMultiSelectAccelerator({
+          labelText,
+          name: 'accelerator-used',
+          options,
+        }),
+      );
       return;
     }
 
     if (labelText === 'Email') {
-      const emails = valueText
-        .split(/\n+/)
-        .map((email) => email.trim())
-        .filter(Boolean);
+      const emails = normalizeList(valueText);
 
       form.appendChild(
         createSearchableEmailSelect({
@@ -604,6 +826,7 @@ export default function decorate(block) {
           options: emails,
         }),
       );
+      return;
     }
   });
 
