@@ -505,3 +505,28 @@
     gap: 4px;
   }
 }
+
+/* Pull the whole form block upward */
+.form {
+  position: relative;
+  z-index: 3;
+  margin-top: -120px !important;
+}
+
+/* Remove extra space inside the block */
+.form > div,
+.form .default-content-wrapper,
+.form .form-wrapper {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* If the section itself is adding space */
+main > .section {
+  padding-top: 0;
+}
+
+/* Reduce the hero bottom gap so the form can overlap it */
+main > .section:first-of-type {
+  padding-bottom: 50px !important;
+}
