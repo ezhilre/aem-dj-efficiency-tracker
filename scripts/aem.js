@@ -591,24 +591,24 @@ function decorateBlocks(main) {
  * @param {Element} header header element
  * @returns {Promise}
  */
-async function loadHeader(header) {
-  const headerBlock = buildBlock('header', '');
-  header.append(headerBlock);
-  decorateBlock(headerBlock);
-  return loadBlock(headerBlock);
-}
+// async function loadHeader(header) {
+//   const headerBlock = buildBlock('header', '');
+//   header.append(headerBlock);
+//   decorateBlock(headerBlock);
+//   return loadBlock(headerBlock);
+// }
 
 /**
  * Loads a block named 'footer' into footer
  * @param footer footer element
  * @returns {Promise}
  */
-async function loadFooter(footer) {
-  const footerBlock = buildBlock('footer', '');
-  footer.append(footerBlock);
-  decorateBlock(footerBlock);
-  return loadBlock(footerBlock);
-}
+// async function loadFooter(footer) {
+//   const footerBlock = buildBlock('footer', '');
+//   footer.append(footerBlock);
+//   decorateBlock(footerBlock);
+//   return loadBlock(footerBlock);
+// }
 
 /**
  * Wait for Image.
@@ -676,8 +676,8 @@ export {
   getMetadata,
   loadBlock,
   loadCSS,
-  loadFooter,
-  loadHeader,
+  // loadFooter,
+  // loadHeader,
   loadScript,
   loadSection,
   loadSections,
