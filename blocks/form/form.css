@@ -561,50 +561,59 @@ main > .section:first-of-type {
 .form > div > div {
   padding-top: 10px !important;
 }
-
-/* Make form use grid */
-.dj-form {
+/* Two-column date row */
+.form-row-dates {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
 }
 
-/* Default: each field takes full width */
-.dj-form .field-wrapper {
-  grid-column: span 2;
+.form-row-dates .form-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
 }
 
-/* From Date + To Date side by side */
-.dj-form .field-wrapper:nth-of-type(2),
-.dj-form .field-wrapper:nth-of-type(3) {
-  grid-column: span 1;
+.form-row-dates .form-date-field label {
+  padding-top: 0;
+  margin: 0;
 }
 
-/* Email + Hours Saved side by side */
-.dj-form .field-wrapper:nth-of-type(4),
-.dj-form .field-wrapper:nth-of-type(5) {
-  grid-column: span 1;
+.form-row-dates .form-control-wrap {
+  width: 100%;
 }
 
-/* Full width fields */
-.dj-form .field-wrapper:nth-of-type(1), /* Project */
-.dj-form .field-wrapper:nth-of-type(6) { /* Accelerator */
-  grid-column: span 2;
+.form-row-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
 }
 
-/* Button full width */
-.dj-form button {
-  grid-column: span 2;
-  justify-self: start;
+.form-row-pair > .form-row {
+  margin: 0;
 }
 
-/* Mobile fallback */
-@media (max-width: 768px) {
-  .dj-form {
+.form-row-pair .form-row {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.form-row-pair .form-row label {
+  padding-top: 16px;
+}
+
+@media (max-width: 700px) {
+  .form-row-dates,
+  .form-row-pair {
     grid-template-columns: 1fr;
   }
 
-  .dj-form .field-wrapper {
-    grid-column: span 1 !important;
+  .form-row-pair .form-row {
+    grid-template-columns: 1fr;
   }
 }

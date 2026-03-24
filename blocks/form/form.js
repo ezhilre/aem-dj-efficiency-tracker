@@ -10,6 +10,10 @@ export default function decorate(block) {
     submitButton: null,
   };
 
+  let pendingDateField = null;
+  let pendingEmailRow = null;
+  let pendingHoursRow = null;
+
   const normalizeName = (label) => label.toLowerCase().trim().replace(/\s+/g, '-');
 
   const normalizeList = (valueText) =>
@@ -77,6 +81,33 @@ export default function decorate(block) {
     wrapper.appendChild(label);
     wrapper.appendChild(controlWrap);
 
+    return wrapper;
+  };
+
+  const createStackField = (labelText, field, errorEl) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'form-date-field';
+
+    const label = document.createElement('label');
+    label.textContent = labelText;
+    label.setAttribute('for', field.id);
+
+    const controlWrap = document.createElement('div');
+    controlWrap.className = 'form-control-wrap';
+    controlWrap.appendChild(field);
+    controlWrap.appendChild(errorEl);
+
+    wrapper.appendChild(label);
+    wrapper.appendChild(controlWrap);
+
+    return wrapper;
+  };
+
+  const createDateRangeRow = (fromField, toField) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'form-row form-row-dates';
+    wrapper.appendChild(createStackField(fromField.label, fromField.field, fromField.errorEl));
+    wrapper.appendChild(createStackField(toField.label, toField.field, toField.errorEl));
     return wrapper;
   };
 
@@ -630,16 +661,14 @@ export default function decorate(block) {
     title.textContent = 'Weekly report captured successfully';
 
     const summary = document.createElement('p');
-    const name = data.name || 'You';
     const project = data.project || 'your project';
     const hours = data['hours-saved'] || '0';
-    summary.textContent = `${name} submitted a weekly report for ${project} and logged ${hours} hours saved.`;
+    summary.textContent = `Your weekly report for ${project} was captured and logged ${hours} hours saved.`;
 
     const details = document.createElement('div');
     details.className = 'form-success-details';
 
     const items = [
-      ['Name', data.name],
       ['Email', data['email-address']],
       ['LDAP', data.ldap],
       ['Project', data.project],
@@ -736,7 +765,7 @@ export default function decorate(block) {
     errorEl.className = 'field-error';
     errorEl.hidden = true;
 
-    if (labelText === 'Name' || labelText === 'Project' || labelText === 'LDAP') {
+    if (labelText === 'Project' || labelText === 'LDAP') {
       field = document.createElement('input');
       field.type = 'text';
       field.name = normalizeName(labelText);
@@ -769,7 +798,17 @@ export default function decorate(block) {
         kind: 'date',
       });
 
-      form.appendChild(createRow(labelText, field, errorEl));
+      if (labelText === 'From Date') {
+        pendingDateField = { label: labelText, field, errorEl };
+        return;
+      }
+
+      if (pendingDateField) {
+        form.appendChild(createDateRangeRow(pendingDateField, { label: labelText, field, errorEl }));
+        pendingDateField = null;
+      } else {
+        form.appendChild(createRow(labelText, field, errorEl));
+      }
       return;
     }
 
@@ -790,7 +829,16 @@ export default function decorate(block) {
         kind: 'number',
       });
 
-      form.appendChild(createRow(labelText, field, errorEl));
+      pendingHoursRow = createRow(labelText, field, errorEl);
+      if (pendingEmailRow) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'form-row form-row-pair';
+        wrapper.appendChild(pendingEmailRow);
+        wrapper.appendChild(pendingHoursRow);
+        form.appendChild(wrapper);
+        pendingEmailRow = null;
+        pendingHoursRow = null;
+      }
       return;
     }
 
@@ -810,16 +858,38 @@ export default function decorate(block) {
     if (labelText === 'Email') {
       const emails = normalizeList(valueText);
 
-      form.appendChild(
-        createSearchableEmailSelect({
-          labelText,
-          name: 'email-address',
-          options: emails,
-        }),
-      );
+      pendingEmailRow = createSearchableEmailSelect({
+        labelText,
+        name: 'email-address',
+        options: emails,
+      });
+      if (pendingHoursRow) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'form-row form-row-pair';
+        wrapper.appendChild(pendingEmailRow);
+        wrapper.appendChild(pendingHoursRow);
+        form.appendChild(wrapper);
+        pendingEmailRow = null;
+        pendingHoursRow = null;
+      }
       return;
     }
   });
+
+  if (pendingDateField) {
+    form.appendChild(createRow(pendingDateField.label, pendingDateField.field, pendingDateField.errorEl));
+    pendingDateField = null;
+  }
+
+  if (pendingEmailRow) {
+    form.appendChild(pendingEmailRow);
+    pendingEmailRow = null;
+  }
+
+  if (pendingHoursRow) {
+    form.appendChild(pendingHoursRow);
+    pendingHoursRow = null;
+  }
 
   if (state.submitButton) {
     const submitWrap = document.createElement('div');
