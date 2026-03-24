@@ -2,7 +2,7 @@
 .weekly-report-form {
   max-width: 980px;
   margin: 48px auto;
-  padding: 32px;
+  padding: 16px 32px 32px;
   background: linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
   border-radius: 24px;
   box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
@@ -508,7 +508,7 @@
 .form {
   position: relative;
   z-index: 3;
-  margin-top: -250px !important;
+  margin-top: -300px !important;
 }
 
 /* Remove extra space inside the block */
@@ -532,7 +532,7 @@ main > .section:first-of-type {
 
 /* Reduce top space inside the form card */
 .form {
-  padding-top: 20px !important; /* reduce if still large */
+  padding-top: 16px !important;
 }
 
 /* Remove extra space above first field */
@@ -553,11 +553,11 @@ main > .section:first-of-type {
 }
 
 .form > div {
-  padding-top: 10px !important;
+  padding-top: 0 !important;
 }
 
 .form > div > div {
-  padding-top: 10px !important;
+  padding-top: 0 !important;
 }
 /* Two-column date row */
 .form-row-dates {
