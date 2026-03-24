@@ -357,3 +357,32 @@ main > .section:first-of-type {
   margin-top: 0 !important;
   padding-top: 0 !important;
 }
+
+
+/* Hero section: keep it tall, but not too tall */
+main > .section:first-of-type {
+  min-height: 320px;
+  padding-bottom: 0;
+}
+
+/* Move the form section upward so it overlaps the hero */
+main > .section:nth-of-type(2) {
+  position: relative;
+  z-index: 2;
+  margin-top: -110px;
+  padding-top: 0;
+}
+
+/* Make the form card sit tighter */
+main > .section:nth-of-type(2) .default-content-wrapper,
+main > .section:nth-of-type(2) .form-wrapper,
+main > .section:nth-of-type(2) .block {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* Optional: reduce vertical space inside the form */
+main > .section:nth-of-type(2) .form-row,
+main > .section:nth-of-type(2) .field-wrapper {
+  margin-bottom: 12px;
+}
