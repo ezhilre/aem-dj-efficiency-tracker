@@ -15,17 +15,16 @@
 }
 
 .form-row {
-  display: grid;
-  grid-template-columns: 180px minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .form-row label {
   font-size: 16px;
   font-weight: 700;
   color: #1f2937;
-  padding-top: 16px;
+  padding-top: 0;
 }
 
 .form-control-wrap {
@@ -80,11 +79,10 @@
 }
 
 .form-row-submit {
-  grid-template-columns: 180px minmax(0, 1fr);
+  flex-direction: row;
 }
 
 .form-row-submit button {
-  grid-column: 2;
   justify-self: start;
   min-height: 54px;
   padding: 14px 26px;
@@ -616,6 +614,7 @@ main > .section:first-of-type {
   .form-row-dates,
   .form-row-pair {
     grid-template-columns: 1fr;
+    padding-left: 0;
   }
 
   .form-row-pair .form-row {
