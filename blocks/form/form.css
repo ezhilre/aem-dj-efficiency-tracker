@@ -553,3 +553,11 @@ main > .section:first-of-type {
 .form label {
   margin-bottom: 4px !important;
 }
+
+.form > div {
+  padding-top: 10px !important;
+}
+
+.form > div > div {
+  padding-top: 10px !important;
+}
