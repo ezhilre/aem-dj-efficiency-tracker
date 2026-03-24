@@ -1,15 +1,4 @@
 export default function decorate(block) {
-  /*
-    Main form setup:
-    - Creates the form element
-    - Reads each row from the block content
-    - Converts each row into a real field
-    - Adds validation
-    - Adds the searchable email picker
-    - Moves the submit button to the end
-    - Replaces the form with a success view after submit
-    - Moves the WebSDK script into <head>
-  */
   const form = document.createElement('form');
   form.className = 'weekly-report-form';
   form.noValidate = true;
@@ -21,14 +10,14 @@ export default function decorate(block) {
     submitButton: null,
   };
 
-  // Convert a label like "From Date" into "from-date"
   const normalizeName = (label) => label.toLowerCase().trim().replace(/\s+/g, '-');
 
-  /*
-    injectLaunchScript()
-    Takes the WebSDK URL from the block and injects it into <head>.
-    This keeps the config in content while loading the real script on the page.
-  */
+  const normalizeList = (valueText) =>
+    valueText
+      .split(/[\n,]+/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+
   const injectLaunchScript = (url) => {
     if (!url) return;
 
@@ -45,19 +34,12 @@ export default function decorate(block) {
     const script = document.createElement('script');
     script.src = cleanUrl;
     script.async = true;
-
     document.head.appendChild(script);
 
+    // eslint-disable-next-line no-console
     console.log('✅ Adobe Launch loaded:', cleanUrl);
   };
 
-  /*
-    setFieldError()
-    Applies or clears the visual error state for a field.
-    - Adds red border when invalid
-    - Shows inline error text
-    - Clears both when valid
-  */
   const setFieldError = (field, errorEl, message) => {
     if (message) {
       field.setAttribute('aria-invalid', 'true');
@@ -79,16 +61,6 @@ export default function decorate(block) {
     errorEl.hidden = true;
   };
 
-  const normalizeList = (valueText) =>
-    valueText
-      .split(/[\n,]+/)
-      .map((item) => item.trim())
-      .filter(Boolean);
-  /*
-    createRow()
-    Builds a standard form row:
-    label on the left, control on the right, error text below the control.
-  */
   const createRow = (labelText, field, errorEl) => {
     const wrapper = document.createElement('div');
     wrapper.className = 'form-row';
@@ -108,11 +80,6 @@ export default function decorate(block) {
     return wrapper;
   };
 
-  /*
-    registerField()
-    Stores every field in state so that validation can be run on all fields
-    before submit.
-  */
   const registerField = ({ label, field, errorEl, kind, options = [] }) => {
     state.fields.push({
       label,
@@ -123,19 +90,14 @@ export default function decorate(block) {
     });
 
     field.addEventListener('input', () => {
-      setFieldError(field, errorEl, '');
+      clearFieldError(field, errorEl);
     });
 
     field.addEventListener('change', () => {
-      setFieldError(field, errorEl, '');
+      clearFieldError(field, errorEl);
     });
   };
 
-  /*
-    validateField()
-    Validates one field and returns an error message if invalid.
-    This is used by validateAll().
-  */
   const validateField = (item) => {
     const { field, label, kind, options, errorEl } = item;
     let message = '';
@@ -164,11 +126,7 @@ export default function decorate(block) {
     setFieldError(field, errorEl, message);
     return message;
   };
-  /*
-    validateAll()
-    Runs validation on every registered field.
-    Returns an array of all invalid fields.
-  */
+
   const validateAll = () => {
     const errors = [];
     state.fields.forEach((item) => {
@@ -178,15 +136,6 @@ export default function decorate(block) {
     return errors;
   };
 
-  /*
-    createSearchableEmailSelect()
-    Creates the custom searchable email input.
-    Behavior:
-    - user types into the input
-    - matching emails are shown in a modern dropdown
-    - selecting one fills the input
-    - only exact values from the source list are accepted
-  */
   const createSearchableEmailSelect = ({ labelText, name, options = [] }) => {
     const wrapper = document.createElement('div');
     wrapper.className = 'form-row form-row-searchable';
@@ -336,9 +285,7 @@ export default function decorate(block) {
 
     input.addEventListener('blur', () => {
       window.setTimeout(() => {
-        if (selectedViaMenu) {
-          return;
-        }
+        if (selectedViaMenu) return;
 
         const value = input.value.trim();
 
@@ -384,296 +331,297 @@ export default function decorate(block) {
   };
 
   const createMultiSelectAccelerator = ({ labelText, name, options = [] }) => {
-  const wrapper = document.createElement('div');
-  wrapper.className = 'form-row form-row-multiselect';
+    const wrapper = document.createElement('div');
+    wrapper.className = 'form-row form-row-multiselect';
 
-  const label = document.createElement('label');
-  label.textContent = labelText;
-  label.setAttribute('for', `${name}-search`);
+    const label = document.createElement('label');
+    label.textContent = labelText;
+    label.setAttribute('for', `${name}-search`);
 
-  const controlWrap = document.createElement('div');
-  controlWrap.className = 'multi-select-shell';
+    const controlWrap = document.createElement('div');
+    controlWrap.className = 'multi-select-shell';
 
-  const topBar = document.createElement('div');
-  topBar.className = 'multi-select-topbar';
+    const topBar = document.createElement('div');
+    topBar.className = 'multi-select-topbar';
 
-  const title = document.createElement('div');
-  title.className = 'multi-select-title';
-  title.textContent = 'Select one or more accelerators';
+    const title = document.createElement('div');
+    title.className = 'multi-select-title';
+    title.textContent = 'Select one or more accelerators';
 
-  const badge = document.createElement('div');
-  badge.className = 'multi-select-badge';
-  badge.textContent = '0 selected';
+    const badge = document.createElement('div');
+    badge.className = 'multi-select-badge';
+    badge.hidden = true;
+    badge.textContent = '';
 
-  topBar.appendChild(title);
-  topBar.appendChild(badge);
+    topBar.appendChild(title);
+    topBar.appendChild(badge);
 
-  const selectedList = document.createElement('div');
-  selectedList.className = 'multi-select-selected';
+    const selectedList = document.createElement('div');
+    selectedList.className = 'multi-select-selected';
 
-  const inputRow = document.createElement('div');
-  inputRow.className = 'multi-select-input-row';
+    const inputRow = document.createElement('div');
+    inputRow.className = 'multi-select-input-row';
 
-  const searchInput = document.createElement('input');
-  searchInput.type = 'text';
-  searchInput.id = `${name}-search`;
-  searchInput.placeholder = 'Search accelerators';
-  searchInput.autocomplete = 'off';
-  searchInput.className = 'multi-select-search';
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.id = `${name}-search`;
+    searchInput.placeholder = 'Search accelerators';
+    searchInput.autocomplete = 'off';
+    searchInput.className = 'multi-select-search';
 
-  const clearBtn = document.createElement('button');
-  clearBtn.type = 'button';
-  clearBtn.className = 'multi-select-clear';
-  clearBtn.textContent = 'Clear all';
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 'multi-select-clear';
+    clearBtn.textContent = 'Clear all';
 
-  const hiddenInput = document.createElement('input');
-  hiddenInput.type = 'hidden';
-  hiddenInput.name = name;
-  hiddenInput.id = name;
-  hiddenInput.value = '';
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = name;
+    hiddenInput.id = name;
+    hiddenInput.value = '';
 
-  const menu = document.createElement('div');
-  menu.className = 'multi-select-menu';
-  menu.hidden = true;
-  menu.setAttribute('role', 'listbox');
-
-  const errorEl = document.createElement('div');
-  errorEl.className = 'field-error';
-  errorEl.hidden = true;
-
-  let selected = [];
-
-  const syncHidden = () => {
-    hiddenInput.value = selected.join(', ');
-    badge.textContent = `${selected.length} selected`;
-    if (selected.length) {
-      clearFieldError(hiddenInput, errorEl);
-    }
-  };
-
-  const openMenu = () => {
-    menu.hidden = false;
-    searchInput.setAttribute('aria-expanded', 'true');
-  };
-
-  const closeMenu = () => {
+    const menu = document.createElement('div');
+    menu.className = 'multi-select-menu';
     menu.hidden = true;
-    searchInput.setAttribute('aria-expanded', 'false');
-  };
+    menu.setAttribute('role', 'listbox');
 
-  const renderSelected = () => {
-    selectedList.replaceChildren();
+    const errorEl = document.createElement('div');
+    errorEl.className = 'field-error';
+    errorEl.hidden = true;
 
-    selected.forEach((value) => {
-      const chip = document.createElement('span');
-      chip.className = 'multi-select-chip';
+    let selected = [];
 
-      const chipText = document.createElement('span');
-      chipText.className = 'multi-select-chip__text';
-      chipText.textContent = value;
+    const syncHidden = () => {
+      hiddenInput.value = selected.join(', ');
 
-      const removeBtn = document.createElement('button');
-      removeBtn.type = 'button';
-      removeBtn.className = 'multi-select-chip__remove';
-      removeBtn.setAttribute('aria-label', `Remove ${value}`);
-      removeBtn.textContent = '×';
+      if (selected.length) {
+        badge.hidden = false;
+        badge.textContent = `${selected.length} selected`;
+        clearFieldError(hiddenInput, errorEl);
+      } else {
+        badge.hidden = true;
+        badge.textContent = '';
+      }
+    };
 
-      removeBtn.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      });
+    const openMenu = () => {
+      menu.hidden = false;
+      searchInput.setAttribute('aria-expanded', 'true');
+    };
 
-      removeBtn.addEventListener('click', () => {
-        selected = selected.filter((item) => item !== value);
-        renderSelected();
-        syncHidden();
-        renderMenu(searchInput.value);
-        searchInput.focus({ preventScroll: true });
-      });
+    const closeMenu = () => {
+      menu.hidden = true;
+      searchInput.setAttribute('aria-expanded', 'false');
+    };
 
-      chip.appendChild(chipText);
-      chip.appendChild(removeBtn);
-      selectedList.appendChild(chip);
-    });
+    const renderSelected = () => {
+      selectedList.replaceChildren();
 
-    searchInput.placeholder = selected.length
-      ? 'Add another accelerator'
-      : 'Search accelerators';
-  };
+      selected.forEach((value) => {
+        const chip = document.createElement('span');
+        chip.className = 'multi-select-chip';
 
-  const renderMenu = (query = '') => {
-    const q = query.trim().toLowerCase();
-    menu.replaceChildren();
+        const chipText = document.createElement('span');
+        chipText.className = 'multi-select-chip__text';
+        chipText.textContent = value;
 
-    const available = options.filter(
-      (opt) => !selected.includes(opt) && (!q || opt.toLowerCase().includes(q)),
-    );
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'multi-select-chip__remove';
+        removeBtn.setAttribute('aria-label', `Remove ${value}`);
+        removeBtn.textContent = '×';
 
-    if (!available.length) {
-      const empty = document.createElement('div');
-      empty.className = 'multi-select-empty';
-      empty.textContent = q ? 'No matching accelerators' : 'No more accelerators to add';
-      menu.appendChild(empty);
-      openMenu();
-      return;
-    }
+        removeBtn.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        });
 
-    available.forEach((opt) => {
-      const option = document.createElement('button');
-      option.type = 'button';
-      option.className = 'multi-select-option';
-      option.setAttribute('role', 'option');
-      option.setAttribute('aria-selected', 'false');
-
-      const left = document.createElement('div');
-      left.className = 'multi-select-option__left';
-
-      const dot = document.createElement('div');
-      dot.className = 'multi-select-option__dot';
-
-      const textWrap = document.createElement('div');
-      textWrap.className = 'multi-select-option__textwrap';
-
-      const text = document.createElement('div');
-      text.className = 'multi-select-option__text';
-      text.textContent = opt;
-
-      const sub = document.createElement('div');
-      sub.className = 'multi-select-option__sub';
-      sub.textContent = 'Tap to add to your report';
-
-      textWrap.appendChild(text);
-      textWrap.appendChild(sub);
-
-      left.appendChild(dot);
-      left.appendChild(textWrap);
-
-      const right = document.createElement('div');
-      right.className = 'multi-select-option__right';
-      right.textContent = '+';
-
-      option.appendChild(left);
-      option.appendChild(right);
-
-      option.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-      });
-
-      option.addEventListener('click', () => {
-        if (!selected.includes(opt)) {
-          selected.push(opt);
+        removeBtn.addEventListener('click', () => {
+          selected = selected.filter((item) => item !== value);
           renderSelected();
           syncHidden();
-        }
+          renderMenu(searchInput.value);
+          searchInput.focus({ preventScroll: true });
+        });
 
-        searchInput.value = '';
-        renderMenu('');
-        openMenu();
-        searchInput.focus({ preventScroll: true });
+        chip.appendChild(chipText);
+        chip.appendChild(removeBtn);
+        selectedList.appendChild(chip);
       });
 
-      menu.appendChild(option);
+      searchInput.placeholder = selected.length
+        ? 'Add another accelerator'
+        : 'Search accelerators';
+    };
+
+    const renderMenu = (query = '') => {
+      const q = query.trim().toLowerCase();
+      menu.replaceChildren();
+
+      const available = options.filter(
+        (opt) => !selected.includes(opt) && (!q || opt.toLowerCase().includes(q)),
+      );
+
+      if (!available.length) {
+        const empty = document.createElement('div');
+        empty.className = 'multi-select-empty';
+        empty.textContent = q ? 'No matching accelerators' : 'No more accelerators to add';
+        menu.appendChild(empty);
+        openMenu();
+        return;
+      }
+
+      available.forEach((opt) => {
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = 'multi-select-option';
+        option.setAttribute('role', 'option');
+        option.setAttribute('aria-selected', 'false');
+
+        const left = document.createElement('div');
+        left.className = 'multi-select-option__left';
+
+        const dot = document.createElement('div');
+        dot.className = 'multi-select-option__dot';
+
+        const textWrap = document.createElement('div');
+        textWrap.className = 'multi-select-option__textwrap';
+
+        const text = document.createElement('div');
+        text.className = 'multi-select-option__text';
+        text.textContent = opt;
+
+        const sub = document.createElement('div');
+        sub.className = 'multi-select-option__sub';
+        sub.textContent = 'Tap to add to your report';
+
+        textWrap.appendChild(text);
+        textWrap.appendChild(sub);
+
+        left.appendChild(dot);
+        left.appendChild(textWrap);
+
+        const right = document.createElement('div');
+        right.className = 'multi-select-option__right';
+        right.textContent = '+';
+
+        option.appendChild(left);
+        option.appendChild(right);
+
+        option.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          if (!selected.includes(opt)) {
+            selected.push(opt);
+            renderSelected();
+            syncHidden();
+          }
+
+          searchInput.value = '';
+          renderMenu('');
+          openMenu();
+
+          window.requestAnimationFrame(() => {
+            searchInput.focus({ preventScroll: true });
+          });
+        });
+
+        menu.appendChild(option);
+      });
+
+      openMenu();
+    };
+
+    searchInput.addEventListener('focus', () => {
+      renderMenu(searchInput.value);
     });
 
-    openMenu();
-  };
+    searchInput.addEventListener('input', () => {
+      clearFieldError(hiddenInput, errorEl);
+      renderMenu(searchInput.value);
+    });
 
-  searchInput.addEventListener('focus', () => {
-    renderMenu(searchInput.value);
-  });
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !searchInput.value && selected.length) {
+        selected.pop();
+        renderSelected();
+        syncHidden();
+        renderMenu('');
+        return;
+      }
 
-  searchInput.addEventListener('input', () => {
-    clearFieldError(hiddenInput, errorEl);
-    renderMenu(searchInput.value);
-  });
+      if (e.key === 'Escape') {
+        closeMenu();
+        return;
+      }
 
-  searchInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Backspace' && !searchInput.value && selected.length) {
-      selected.pop();
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const firstOption = menu.querySelector('.multi-select-option');
+        if (firstOption) firstOption.click();
+      }
+    });
+
+    searchInput.addEventListener('blur', () => {
+      window.setTimeout(() => {
+        const active = document.activeElement;
+        if (wrapper.contains(active)) return;
+
+        if (!selected.length) {
+          setFieldError(hiddenInput, errorEl, `${labelText} is required.`);
+        } else {
+          clearFieldError(hiddenInput, errorEl);
+        }
+
+        closeMenu();
+      }, 50);
+    });
+
+    clearBtn.addEventListener('click', () => {
+      selected = [];
       renderSelected();
       syncHidden();
+      searchInput.value = '';
+      searchInput.focus({ preventScroll: true });
       renderMenu('');
-      return;
-    }
+    });
 
-    if (e.key === 'Escape') {
-      closeMenu();
-      return;
-    }
-
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const firstOption = menu.querySelector('.multi-select-option');
-      if (firstOption) firstOption.click();
-    }
-  });
-
-  searchInput.addEventListener('blur', () => {
-    window.setTimeout(() => {
-      if (wrapper.contains(document.activeElement)) return;
-
-      if (!selected.length) {
-        setFieldError(hiddenInput, errorEl, `${labelText} is required.`);
-      } else {
-        clearFieldError(hiddenInput, errorEl);
+    document.addEventListener('click', (e) => {
+      if (!wrapper.contains(e.target)) {
+        closeMenu();
+        if (!selected.length) {
+          setFieldError(hiddenInput, errorEl, `${labelText} is required.`);
+        }
       }
+    });
 
-      closeMenu();
-    }, 100);
-  });
-
-  clearBtn.addEventListener('click', () => {
-    selected = [];
     renderSelected();
     syncHidden();
-    searchInput.value = '';
-    searchInput.focus({ preventScroll: true });
-    renderMenu('');
-  });
 
-  document.addEventListener('click', (e) => {
-    if (!wrapper.contains(e.target)) {
-      closeMenu();
-      if (!selected.length) {
-        setFieldError(hiddenInput, errorEl, `${labelText} is required.`);
-      }
-    }
-  });
+    inputRow.appendChild(searchInput);
+    inputRow.appendChild(clearBtn);
 
-  renderSelected();
-  syncHidden();
+    controlWrap.appendChild(topBar);
+    controlWrap.appendChild(selectedList);
+    controlWrap.appendChild(inputRow);
+    controlWrap.appendChild(menu);
+    controlWrap.appendChild(errorEl);
+    controlWrap.appendChild(hiddenInput);
 
-  inputRow.appendChild(searchInput);
-  inputRow.appendChild(clearBtn);
+    wrapper.appendChild(label);
+    wrapper.appendChild(controlWrap);
 
-  controlWrap.appendChild(topBar);
-  controlWrap.appendChild(selectedList);
-  controlWrap.appendChild(inputRow);
-  controlWrap.appendChild(menu);
-  controlWrap.appendChild(errorEl);
-  controlWrap.appendChild(hiddenInput);
+    registerField({
+      label: labelText,
+      field: hiddenInput,
+      errorEl,
+      kind: 'multiselect',
+    });
 
-  wrapper.appendChild(label);
-  wrapper.appendChild(controlWrap);
+    return wrapper;
+  };
 
-  registerField({
-    label: labelText,
-    field: hiddenInput,
-    errorEl,
-    kind: 'multiselect',
-  });
-
-  return wrapper;
-};
-
-  /*
-    renderSuccessView()
-    Builds the post-submit screen.
-    It shows:
-    - a success headline
-    - a short summary sentence
-    - the submitted values in a clean list
-  */
   const renderSuccessView = (data) => {
     const success = document.createElement('div');
     success.className = 'form-success';
@@ -725,12 +673,6 @@ export default function decorate(block) {
     return success;
   };
 
-  /*
-    handleSubmit()
-    Runs full validation.
-    If anything is invalid, stop and focus the first invalid field.
-    If valid, push data to adobeDataLayer and show the success summary.
-  */
   const handleSubmit = () => {
     const errors = validateAll();
 
@@ -759,15 +701,12 @@ export default function decorate(block) {
     window.adobeDataLayer = window.adobeDataLayer || [];
     window.adobeDataLayer.push(payload);
 
+    // eslint-disable-next-line no-console
     console.log('✅ adobeDataLayer push:', payload);
 
     block.replaceChildren(renderSuccessView(data));
   };
 
-  /*
-    Main block parsing loop:
-    Reads each row from the source block and converts it into the right field type.
-  */
   rows.forEach((row) => {
     const labelText = row.children[0]?.textContent.trim();
     const valueEl = row.children[1];
@@ -775,7 +714,6 @@ export default function decorate(block) {
 
     if (!labelText) return;
 
-    // Move the WebSDK script into <head> and do not render this row.
     if (labelText === 'WebSDK') {
       const link = valueEl?.querySelector('a');
       const url = link?.href || valueText;
@@ -857,17 +795,17 @@ export default function decorate(block) {
     }
 
     if (labelText === 'Accelerator Used') {
-  const options = normalizeList(valueText);
+      const options = normalizeList(valueText);
 
-  form.appendChild(
-    createMultiSelectAccelerator({
-      labelText,
-      name: 'accelerator-used',
-      options,
-    }),
-  );
-  return;
-}
+      form.appendChild(
+        createMultiSelectAccelerator({
+          labelText,
+          name: 'accelerator-used',
+          options,
+        }),
+      );
+      return;
+    }
 
     if (labelText === 'Email') {
       const emails = normalizeList(valueText);
@@ -883,10 +821,6 @@ export default function decorate(block) {
     }
   });
 
-  /*
-    Submit button is appended at the very end of the form
-    so it always appears after every field.
-  */
   if (state.submitButton) {
     const submitWrap = document.createElement('div');
     submitWrap.className = 'form-row form-row-submit';
