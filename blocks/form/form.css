@@ -208,7 +208,6 @@
 .form-row-multiselect {
   align-items: flex-start;
   min-width: 0;
-  overflow: hidden;
 }
 
 .multi-select-shell {
@@ -219,6 +218,7 @@
   border-radius: 26px;
   background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
   box-shadow: 0 16px 42px rgba(15, 23, 42, 0.06);
+  box-sizing: border-box;
 }
 
 .multi-select-topbar {
@@ -511,7 +511,7 @@
 .form {
   position: relative;
   z-index: 3;
-  margin-top: -300px !important;
+  margin-top: -180px !important;
 }
 
 /* Remove extra space inside the block */
