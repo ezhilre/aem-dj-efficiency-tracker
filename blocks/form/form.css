@@ -80,10 +80,11 @@
 
 .form-row-submit {
   flex-direction: row;
+  justify-content: flex-end;
 }
 
 .form-row-submit button {
-  justify-self: start;
+  justify-self: end;
   min-height: 54px;
   padding: 14px 26px;
   border: none;
@@ -206,6 +207,8 @@
 /* Multi-select accelerator */
 .form-row-multiselect {
   align-items: flex-start;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .multi-select-shell {

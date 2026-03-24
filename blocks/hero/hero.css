@@ -5,14 +5,16 @@
 
 .hero {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 20px 24px 40px;
   min-height: 300px;
 }
 
 .hero h1 {
   max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 auto;
   color: var(--background-color);
   text-align: center;
 }
