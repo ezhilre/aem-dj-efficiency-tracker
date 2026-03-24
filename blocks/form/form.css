@@ -593,18 +593,23 @@ main > .section:first-of-type {
 }
 
 .form-row-pair > .form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   margin: 0;
-}
-
-.form-row-pair .form-row {
-  display: grid;
-  grid-template-columns: 180px minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
+  grid-template-columns: unset;
 }
 
 .form-row-pair .form-row label {
-  padding-top: 16px;
+  padding-top: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.form-row-pair .form-row .form-control-wrap,
+.form-row-pair .form-row .searchable-select-wrap {
+  width: 100%;
 }
 
 @media (max-width: 700px) {
