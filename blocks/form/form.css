@@ -506,11 +506,11 @@
   }
 }
 
-/* Pull the whole form block upward */
+/* Pull the whole form block upward. */
 .form {
   position: relative;
   z-index: 3;
-  margin-top: -120px !important;
+  margin-top: -250px !important;
 }
 
 /* Remove extra space inside the block */
