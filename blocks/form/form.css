@@ -530,3 +530,26 @@ main > .section {
 main > .section:first-of-type {
   padding-bottom: 50px !important;
 }
+
+
+/* Reduce top space inside the form card */
+.form {
+  padding-top: 20px !important; /* reduce if still large */
+}
+
+/* Remove extra space above first field */
+.form form > .field-wrapper:first-child,
+.form form > div:first-child {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Reduce spacing between rows */
+.form .field-wrapper {
+  margin-bottom: 10px !important;
+}
+
+/* Tighten label spacing */
+.form label {
+  margin-bottom: 4px !important;
+}
