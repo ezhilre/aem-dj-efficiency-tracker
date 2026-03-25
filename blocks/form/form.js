@@ -453,6 +453,11 @@ export default function decorate(block) {
     auHeader.appendChild(auTitleGroup);
     auHeader.appendChild(auClearAll);
 
+    /* Selected chips area — sits ABOVE the search bar, outside the panel */
+    const auChipsArea = document.createElement('div');
+    auChipsArea.className = 'au-chips-area';
+    auChipsArea.hidden = true;
+
     /* Search bar */
     const auSearchWrap = document.createElement('div');
     auSearchWrap.className = 'au-search-wrap';
@@ -484,11 +489,6 @@ export default function decorate(block) {
     const auPanel = document.createElement('div');
     auPanel.className = 'au-panel';
     auPanel.hidden = true;
-
-    /* Chips area */
-    const auChipsArea = document.createElement('div');
-    auChipsArea.className = 'au-chips-area';
-    auChipsArea.hidden = true;
 
     /* Custom input row */
     const auCustomWrap = document.createElement('div');
@@ -554,7 +554,8 @@ export default function decorate(block) {
         removeBtn.setAttribute('aria-label', `Remove ${val}`);
         removeBtn.textContent = '×';
         removeBtn.addEventListener('mousedown', (e) => e.preventDefault());
-        removeBtn.addEventListener('click', () => {
+        removeBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
           auSelected.delete(val);
           renderAll(); // eslint-disable-line no-use-before-define
         });
@@ -733,8 +734,6 @@ export default function decorate(block) {
         auPanel.appendChild(treeEl);
       }
 
-      auPanel.appendChild(auChipsArea);
-
       const hasAnyOther = tree.some((n) => n.label.toLowerCase().includes('other'));
       if (hasAnyOther) auPanel.appendChild(auCustomWrap);
     };
@@ -804,8 +803,12 @@ export default function decorate(block) {
       if (e.key === 'Enter') { e.preventDefault(); addCustom(); }
     });
 
+    /* Stop clicks inside the chips area from bubbling to document (which would close dropdown) */
+    auChipsArea.addEventListener('click', (e) => e.stopPropagation());
+
     /* ── 7. Assemble ────────────────────────────────────────────── */
     shell.appendChild(auHeader);
+    shell.appendChild(auChipsArea);
     shell.appendChild(auSearchWrap);
     shell.appendChild(auPanel);
 

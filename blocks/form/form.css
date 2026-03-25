@@ -562,6 +562,28 @@ main > .section:first-of-type {
 .form > div > div {
   padding-top: 0 !important;
 }
+/* Date input — push calendar icon to right edge */
+.form-row input[type="date"] {
+  position: relative;
+  padding-right: 44px;
+}
+
+.form-row input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.form-row input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
 /* Two-column date row */
 .form-row-dates {
   display: grid;
@@ -1016,14 +1038,16 @@ main > .section:first-of-type {
   font-size: 14px;
 }
 
-/* Chips area */
+/* Chips area — rendered ABOVE the search bar, outside the dropdown panel */
 .au-chips-area {
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 12px 16px;
-  border-top: 1px solid #f3f4f6;
-  background: #fafafa;
+  border: 1.5px solid #fac9c6;
+  border-radius: 12px;
+  background: #fffaf9;
+  margin-bottom: 8px;
 }
 
 .au-chips-area[hidden] {
