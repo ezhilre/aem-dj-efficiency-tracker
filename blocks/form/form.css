@@ -592,7 +592,6 @@ main > .section:first-of-type {
   box-sizing: border-box;
 }
 
-.cdp-display:hover,
 .cdp-display:focus {
   outline: none;
   border-color: #e1251b;
@@ -627,8 +626,7 @@ main > .section:first-of-type {
   transition: color 0.15s ease;
 }
 
-.cdp-display--open .cdp-icon,
-.cdp-display:hover .cdp-icon {
+.cdp-display--open .cdp-icon {
   color: #e1251b;
 }
 
