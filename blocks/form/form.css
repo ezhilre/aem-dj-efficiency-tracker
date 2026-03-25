@@ -11,74 +11,48 @@
 .weekly-report-form {
   display: flex;
   flex-direction: column;
-  gap: 28px;
-  padding-top: 16px;
+  gap: 22px;
 }
 
-/* ── MUI TextField outlined style ── */
-
-/* Each field wrapper is relative so the label can be positioned on its border */
 .form-row {
-  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0;
-  margin-top: 8px;
+  gap: 8px;
 }
 
-/* The label sits exactly on the top border line */
-.form-row > label {
-  position: absolute;
-  top: 0;
-  left: 14px;
-  transform: translateY(-50%);
-  padding: 0 5px;
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.6);
-  background: #fff;
-  line-height: 1;
-  pointer-events: none;
-  z-index: 3;
-  white-space: nowrap;
-  letter-spacing: 0.01em;
+.form-row label {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+  padding-top: 0;
 }
 
-/* form-control-wrap: the direct container of the input — this is what gets the border */
 .form-control-wrap {
-  position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
-/* The input inside form-control-wrap — label sits on form-row's top edge */
 .form-row input,
 .form-row select,
 .searchable-select-wrap input,
 .multi-select-search {
   width: 100%;
-  min-height: 56px;
-  padding: 16px 14px 16px 14px;
+  min-height: 58px;
+  padding: 15px 18px;
   font-size: 16px;
-  border: 1.5px solid rgba(0, 0, 0, 0.23);
-  border-radius: 12px;
-  background: transparent;
+  border: 1px solid #d5dbe6;
+  border-radius: 16px;
+  background: #fff;
   color: #111827;
   box-sizing: border-box;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 }
 
 .form-row input::placeholder,
 .searchable-select-wrap input::placeholder,
 .multi-select-search::placeholder {
-  color: rgba(0, 0, 0, 0.38);
-}
-
-.form-row input:hover,
-.form-row select:hover,
-.searchable-select-wrap input:hover {
-  border-color: rgba(0, 0, 0, 0.87);
+  color: #718096;
 }
 
 .form-row input:focus,
@@ -87,15 +61,7 @@
 .multi-select-search:focus {
   outline: none;
   border-color: #e1251b;
-  border-width: 2px;
-}
-
-.form-row input:focus ~ label,
-.form-row input:focus + label,
-.form-row select:focus ~ label,
-.form-row select:focus + label,
-.form-row:focus-within > label {
-  color: #e1251b;
+  box-shadow: 0 0 0 4px rgba(225, 37, 27, 0.12);
 }
 
 .is-invalid {
@@ -115,7 +81,6 @@
 .form-row-submit {
   flex-direction: row;
   justify-content: flex-end;
-  margin-top: 8px;
 }
 
 .form-row-submit button {
@@ -142,33 +107,10 @@
   transform: scale(0.98);
 }
 
-/* ── Searchable-select: label on border ── */
-.form-row-searchable {
-  position: relative;
-  margin-top: 8px;
-}
-
-.form-row-searchable > label {
-  position: absolute;
-  top: 0;
-  left: 14px;
-  transform: translateY(-50%);
-  padding: 0 5px;
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.6);
-  background: #fff;
-  line-height: 1;
-  pointer-events: none;
-  z-index: 3;
-  white-space: nowrap;
-}
-
 /* Email searchable select */
 .searchable-select-wrap {
   position: relative;
   width: 100%;
-  margin-top: 0;
 }
 
 .searchable-select-menu {
@@ -603,19 +545,14 @@ main > .section:first-of-type {
   padding-top: 0 !important;
 }
 
-/* Spacing between rows — add top margin so floating label is visible */
+/* Reduce spacing between rows */
 .form .field-wrapper {
   margin-bottom: 10px !important;
 }
 
-/* Top margin for first-level children to give space above the label notch */
-.weekly-report-form > *:not(:first-child) {
-  margin-top: 8px;
-}
-
 /* Tighten label spacing */
 .form label {
-  margin-bottom: 0 !important;
+  margin-bottom: 4px !important;
 }
 
 .form > div {
@@ -644,30 +581,26 @@ main > .section:first-of-type {
   justify-content: space-between;
   gap: 10px;
   width: 100%;
-  min-height: 56px;
-  padding: 16px 14px;
-  border: 1.5px solid rgba(0, 0, 0, 0.23);
-  border-radius: 12px;
-  background: transparent;
+  min-height: 58px;
+  padding: 15px 18px;
+  border: 1px solid #d5dbe6;
+  border-radius: 16px;
+  background: #fff;
   cursor: pointer;
-  transition: border-color 0.18s ease;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
   user-select: none;
   box-sizing: border-box;
-}
-
-.cdp-display:hover {
-  border-color: rgba(0, 0, 0, 0.87);
 }
 
 .cdp-display:focus {
   outline: none;
   border-color: #e1251b;
-  border-width: 2px;
+  box-shadow: 0 0 0 4px rgba(225, 37, 27, 0.1);
 }
 
 .cdp-display--open {
   border-color: #e1251b;
-  border-width: 2px;
+  box-shadow: 0 0 0 4px rgba(225, 37, 27, 0.1);
 }
 
 .cdp-display--invalid {
@@ -861,37 +794,21 @@ main > .section:first-of-type {
 }
 
 .form-row-dates .form-date-field {
-  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 8px;
   min-width: 0;
   overflow: visible;
-  margin-top: 8px;
-}
-
-/* Label sits on the top border of the cdp-display */
-.form-row-dates .form-date-field label {
-  position: absolute;
-  top: 0;
-  left: 14px;
-  transform: translateY(-50%);
-  padding: 0 5px;
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.6);
-  background: #fff;
-  line-height: 1;
-  pointer-events: none;
-  z-index: 3;
-  white-space: nowrap;
-  margin: 0;
 }
 
 .form-row-dates .form-date-field .form-control-wrap {
   min-width: 0;
   width: 100%;
-  margin-top: 0;
+}
+
+.form-row-dates .form-date-field label {
+  padding-top: 0;
+  margin: 0;
 }
 
 .form-row-dates .form-control-wrap {
@@ -906,20 +823,23 @@ main > .section:first-of-type {
 }
 
 .form-row-pair > .form-row {
-  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0;
-  margin: 8px 0 0 0;
+  gap: 8px;
+  margin: 0;
   grid-template-columns: unset;
 }
 
-/* label already handled by .form-row > label above */
+.form-row-pair .form-row label {
+  padding-top: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+}
 
 .form-row-pair .form-row .form-control-wrap,
 .form-row-pair .form-row .searchable-select-wrap {
   width: 100%;
-  margin-top: 0;
 }
 
 @media (max-width: 700px) {
@@ -927,7 +847,6 @@ main > .section:first-of-type {
   .form-row-pair {
     grid-template-columns: 1fr;
     padding-left: 0;
-    gap: 24px;
   }
 
   .form-row-pair .form-row {
@@ -986,32 +905,15 @@ main > .section:first-of-type {
 
 /* Outer form-row wrapper */
 .form-row-au {
-  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0;
-  margin-top: 8px;
+  gap: 8px;
 }
 
-/* Label on the top border of the au-search-wrap */
 .form-row-au > label {
-  position: absolute;
-  top: 0;
-  left: 14px;
-  transform: translateY(-50%);
-  padding: 0 5px;
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.6);
-  background: #fff;
-  line-height: 1;
-  pointer-events: none;
-  z-index: 3;
-  white-space: nowrap;
-}
-
-.form-row-au > .au-shell {
-  margin-top: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
 }
 
 /* Shell */
@@ -1064,15 +966,11 @@ main > .section:first-of-type {
   align-items: center;
   gap: 10px;
   padding: 0 14px;
-  border: 1.5px solid rgba(0, 0, 0, 0.23);
-  border-radius: 12px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 16px;
   background: #fff;
-  transition: border-color 0.18s ease;
-  min-height: 56px;
-}
-
-.au-search-wrap:hover {
-  border-color: rgba(0, 0, 0, 0.87);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  min-height: 58px;
 }
 
 .au-search-wrap--open,
