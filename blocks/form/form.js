@@ -361,287 +361,442 @@ export default function decorate(block) {
     return wrapper;
   };
 
-  const createMultiSelectAccelerator = ({ labelText, name, options = [] }) => {
+  /**
+   * createHierarchicalAcceleratorSelect
+   * Builds a rich hierarchical multi-select with search, collapsible groups,
+   * checkboxes, chips, and Adobe red theming.
+   * @param {string} labelText  - field label
+   * @param {string} name       - input name / id
+   * @param {Element} contentEl - the authored DOM element containing <p> + <ul>s
+   */
+  const createHierarchicalAcceleratorSelect = ({ labelText, name, contentEl: domEl }) => {
+    /* ── 1. Parse authored DOM into tree ────────────────────────── */
+    const parseList = (ul) => {
+      if (!ul) return [];
+      return [...ul.children].map((li) => {
+        const headingEl = li.querySelector(':scope > p');
+        const lbl = headingEl
+          ? headingEl.textContent.trim()
+          : (li.firstChild?.nodeType === 3 ? li.firstChild.textContent.trim() : null)
+            || li.textContent.trim();
+        const nestedUl = li.querySelector(':scope > ul');
+        const children = nestedUl ? parseList(nestedUl) : [];
+        return { label: lbl, children, isLeaf: children.length === 0 };
+      });
+    };
+
+    const topLevelP = domEl?.querySelector(':scope > p');
+    const sectionLabel = topLevelP?.textContent.trim() || 'Accelerators';
+    const allUls = domEl ? [...domEl.querySelectorAll(':scope > ul')] : [];
+    const flatUl = allUls[0];
+    const groupedUl = allUls[1];
+
+    const flatItems = flatUl
+      ? [...flatUl.children].map((li) => ({
+          label: li.textContent.trim(),
+          children: [],
+          isLeaf: true,
+        }))
+      : [];
+
+    const groupedItems = parseList(groupedUl);
+    const tree = [
+      { label: sectionLabel, children: flatItems, isLeaf: false },
+      ...groupedItems,
+    ];
+
+    /* Collect every leaf label */
+    const allLeaves = [];
+    const collectLeaves = (nodes) => {
+      nodes.forEach((n) => {
+        if (n.isLeaf) allLeaves.push(n.label);
+        else collectLeaves(n.children);
+      });
+    };
+    collectLeaves(tree);
+
+    /* ── 2. State ────────────────────────────────────────────────── */
+    let auSelected = new Set();
+    let expandedGroups = new Set([sectionLabel]); // first group open by default
+    let auSearchQuery = '';
+    let auDropdownOpen = false;
+
+    /* ── 3. DOM scaffold ─────────────────────────────────────────── */
     const wrapper = document.createElement('div');
-    wrapper.className = 'form-row form-row-multiselect';
+    wrapper.className = 'form-row form-row-au';
 
-    const label = document.createElement('label');
-    label.textContent = labelText;
-    label.setAttribute('for', `${name}-search`);
+    const formLabel = document.createElement('label');
+    formLabel.textContent = labelText;
+    formLabel.setAttribute('for', `${name}-search`);
 
-    const controlWrap = document.createElement('div');
-    controlWrap.className = 'multi-select-shell';
+    /* Shell */
+    const shell = document.createElement('div');
+    shell.className = 'au-shell';
 
-    const topBar = document.createElement('div');
-    topBar.className = 'multi-select-topbar';
+    /* Header */
+    const auHeader = document.createElement('div');
+    auHeader.className = 'au-header';
 
-    const title = document.createElement('div');
-    title.className = 'multi-select-title';
-    title.textContent = 'Select one or more accelerators';
+    const auTitleGroup = document.createElement('div');
+    auTitleGroup.className = 'au-title-group';
+    const auSubtitle = document.createElement('div');
+    auSubtitle.className = 'au-subtitle';
+    auSubtitle.textContent = 'Select one or more';
+    auTitleGroup.appendChild(auSubtitle);
 
-    const badge = document.createElement('div');
-    badge.className = 'multi-select-badge';
-    badge.hidden = true;
-    badge.textContent = '';
+    const auClearAll = document.createElement('button');
+    auClearAll.type = 'button';
+    auClearAll.className = 'au-clear-all';
+    auClearAll.textContent = 'Clear all';
+    auClearAll.style.display = 'none';
 
-    topBar.appendChild(title);
-    topBar.appendChild(badge);
+    auHeader.appendChild(auTitleGroup);
+    auHeader.appendChild(auClearAll);
 
-    const selectedList = document.createElement('div');
-    selectedList.className = 'multi-select-selected';
+    /* Search bar */
+    const auSearchWrap = document.createElement('div');
+    auSearchWrap.className = 'au-search-wrap';
 
-    const inputRow = document.createElement('div');
-    inputRow.className = 'multi-select-input-row';
+    const auSearchIcon = document.createElement('span');
+    auSearchIcon.className = 'au-search-icon';
+    auSearchIcon.setAttribute('aria-hidden', 'true');
+    auSearchIcon.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
 
-    const searchInput = document.createElement('input');
-    searchInput.type = 'text';
-    searchInput.id = `${name}-search`;
-    searchInput.placeholder = 'Search accelerators';
-    searchInput.autocomplete = 'off';
-    searchInput.className = 'multi-select-search';
+    const auSearchInput = document.createElement('input');
+    auSearchInput.type = 'text';
+    auSearchInput.id = `${name}-search`;
+    auSearchInput.className = 'au-search-input';
+    auSearchInput.placeholder = 'Search or select accelerators';
+    auSearchInput.setAttribute('aria-label', 'Search accelerators');
+    auSearchInput.autocomplete = 'off';
 
-    const clearBtn = document.createElement('button');
-    clearBtn.type = 'button';
-    clearBtn.className = 'multi-select-clear';
-    clearBtn.textContent = 'Clear all';
+    const auChevronBtn = document.createElement('button');
+    auChevronBtn.type = 'button';
+    auChevronBtn.className = 'au-chevron-btn';
+    auChevronBtn.setAttribute('aria-label', 'Toggle dropdown');
+    auChevronBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
 
+    auSearchWrap.appendChild(auSearchIcon);
+    auSearchWrap.appendChild(auSearchInput);
+    auSearchWrap.appendChild(auChevronBtn);
+
+    /* Dropdown panel */
+    const auPanel = document.createElement('div');
+    auPanel.className = 'au-panel';
+    auPanel.hidden = true;
+
+    /* Chips area */
+    const auChipsArea = document.createElement('div');
+    auChipsArea.className = 'au-chips-area';
+    auChipsArea.hidden = true;
+
+    /* Custom input row */
+    const auCustomWrap = document.createElement('div');
+    auCustomWrap.className = 'au-custom-wrap';
+    const auCustomInput = document.createElement('input');
+    auCustomInput.type = 'text';
+    auCustomInput.className = 'au-custom-input';
+    auCustomInput.placeholder = 'Enter custom accelerator';
+    const auCustomAddBtn = document.createElement('button');
+    auCustomAddBtn.type = 'button';
+    auCustomAddBtn.className = 'au-custom-add';
+    auCustomAddBtn.textContent = 'Add';
+    auCustomWrap.appendChild(auCustomInput);
+    auCustomWrap.appendChild(auCustomAddBtn);
+
+    /* Hidden input for form submission */
     const hiddenInput = document.createElement('input');
     hiddenInput.type = 'hidden';
     hiddenInput.name = name;
     hiddenInput.id = name;
-    hiddenInput.value = '';
-
-    const menu = document.createElement('div');
-    menu.className = 'multi-select-menu';
-    menu.hidden = true;
-    menu.setAttribute('role', 'listbox');
 
     const errorEl = document.createElement('div');
     errorEl.className = 'field-error';
     errorEl.hidden = true;
 
-    let selected = [];
-
+    /* ── 4. Render helpers ───────────────────────────────────────── */
     const syncHidden = () => {
-      hiddenInput.value = selected.join(', ');
-
-      if (selected.length) {
-        badge.hidden = false;
-        badge.textContent = `${selected.length} selected`;
-        clearFieldError(hiddenInput, errorEl);
-      } else {
-        badge.hidden = true;
-        badge.textContent = '';
-      }
+      hiddenInput.value = [...auSelected].join(', ');
+      auClearAll.style.display = auSelected.size ? '' : 'none';
+      if (auSelected.size) clearFieldError(hiddenInput, errorEl);
     };
 
-    const openMenu = () => {
-      menu.hidden = false;
-      searchInput.setAttribute('aria-expanded', 'true');
-    };
-
-    const closeMenu = () => {
-      menu.hidden = true;
-      searchInput.setAttribute('aria-expanded', 'false');
-    };
-
-    const renderSelected = () => {
-      selectedList.replaceChildren();
-
-      selected.forEach((value) => {
+    const renderChips = () => {
+      auChipsArea.replaceChildren();
+      if (!auSelected.size) { auChipsArea.hidden = true; return; }
+      auChipsArea.hidden = false;
+      [...auSelected].forEach((val) => {
         const chip = document.createElement('span');
-        chip.className = 'multi-select-chip';
+        chip.className = 'au-chip';
+
+        const chkMark = document.createElement('span');
+        chkMark.className = 'au-chip-check';
+        chkMark.innerHTML = '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 6 5 9 10 3"/></svg>';
 
         const chipText = document.createElement('span');
-        chipText.className = 'multi-select-chip__text';
-        chipText.textContent = value;
+        chipText.className = 'au-chip-text';
+        chipText.textContent = val;
 
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
-        removeBtn.className = 'multi-select-chip__remove';
-        removeBtn.setAttribute('aria-label', `Remove ${value}`);
+        removeBtn.className = 'au-chip-remove';
+        removeBtn.setAttribute('aria-label', `Remove ${val}`);
         removeBtn.textContent = '×';
-
-        removeBtn.addEventListener('mousedown', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        });
-
+        removeBtn.addEventListener('mousedown', (e) => e.preventDefault());
         removeBtn.addEventListener('click', () => {
-          selected = selected.filter((item) => item !== value);
-          renderSelected();
-          syncHidden();
-          renderMenu(searchInput.value);
-          searchInput.focus({ preventScroll: true });
+          auSelected.delete(val);
+          renderAll(); // eslint-disable-line no-use-before-define
         });
 
+        chip.appendChild(chkMark);
         chip.appendChild(chipText);
         chip.appendChild(removeBtn);
-        selectedList.appendChild(chip);
+        auChipsArea.appendChild(chip);
       });
-
-      searchInput.placeholder = selected.length
-        ? 'Add another accelerator'
-        : 'Search accelerators';
     };
 
-    const renderMenu = (query = '') => {
-      const q = query.trim().toLowerCase();
-      menu.replaceChildren();
+    const nodeMatchesQuery = (node, q) => {
+      if (!q) return true;
+      if (node.label.toLowerCase().includes(q)) return true;
+      return node.children.some((c) => nodeMatchesQuery(c, q));
+    };
 
-      const available = options.filter(
-        (opt) => !selected.includes(opt) && (!q || opt.toLowerCase().includes(q)),
-      );
+    const buildLeafRow = (lbl, depth) => {
+      const row = document.createElement('label');
+      row.className = `au-item au-item--leaf au-item--depth-${depth}`;
 
-      if (!available.length) {
-        const empty = document.createElement('div');
-        empty.className = 'multi-select-empty';
-        empty.textContent = q ? 'No matching accelerators' : 'No more accelerators to add';
-        menu.appendChild(empty);
-        openMenu();
-        return;
-      }
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.className = 'au-checkbox';
+      cb.value = lbl;
+      cb.checked = auSelected.has(lbl);
+      cb.addEventListener('change', () => {
+        if (cb.checked) auSelected.add(lbl);
+        else auSelected.delete(lbl);
+        renderAll(); // eslint-disable-line no-use-before-define
+      });
 
-      available.forEach((opt) => {
-        const option = document.createElement('button');
-        option.type = 'button';
-        option.className = 'multi-select-option';
-        option.setAttribute('role', 'option');
-        option.setAttribute('aria-selected', 'false');
+      const cbCustom = document.createElement('span');
+      cbCustom.className = 'au-checkbox-custom';
 
-        const left = document.createElement('div');
-        left.className = 'multi-select-option__left';
+      const txt = document.createElement('span');
+      txt.className = 'au-item-label';
+      txt.textContent = lbl;
 
-        const dot = document.createElement('div');
-        dot.className = 'multi-select-option__dot';
+      row.appendChild(cb);
+      row.appendChild(cbCustom);
+      row.appendChild(txt);
+      return row;
+    };
 
-        const textWrap = document.createElement('div');
-        textWrap.className = 'multi-select-option__textwrap';
+    const getGroupState = (node) => {
+      const leaves = [];
+      const collect = (n) => { if (n.isLeaf) leaves.push(n.label); else n.children.forEach(collect); };
+      collect(node);
+      if (!leaves.length) return { checked: false, indeterminate: false };
+      const cnt = leaves.filter((l) => auSelected.has(l)).length;
+      return { checked: cnt === leaves.length, indeterminate: cnt > 0 && cnt < leaves.length };
+    };
 
-        const text = document.createElement('div');
-        text.className = 'multi-select-option__text';
-        text.textContent = opt;
+    const toggleGroupLeaves = (node, val) => {
+      const setLeaf = (n) => {
+        if (n.isLeaf) { if (val) auSelected.add(n.label); else auSelected.delete(n.label); }
+        else n.children.forEach(setLeaf);
+      };
+      setLeaf(node);
+    };
 
-        const sub = document.createElement('div');
-        sub.className = 'multi-select-option__sub';
-        sub.textContent = 'Tap to add to your report';
+    const buildGroupSection = (node, depth, parentEl) => {
+      const q = auSearchQuery.toLowerCase();
+      if (!nodeMatchesQuery(node, q)) return;
 
-        textWrap.appendChild(text);
-        textWrap.appendChild(sub);
+      const isExpanded = expandedGroups.has(node.label) || !!(q && nodeMatchesQuery(node, q));
+      const { checked, indeterminate } = getGroupState(node);
 
-        left.appendChild(dot);
-        left.appendChild(textWrap);
+      const groupRow = document.createElement('div');
+      groupRow.className = `au-group-row au-item--depth-${depth}`;
+      if (isExpanded) groupRow.classList.add('au-group-row--open');
 
-        const right = document.createElement('div');
-        right.className = 'multi-select-option__right';
-        right.textContent = '+';
+      const chevron = document.createElement('span');
+      chevron.className = 'au-group-chevron';
+      chevron.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
 
-        option.appendChild(left);
-        option.appendChild(right);
+      const groupLbl = document.createElement('span');
+      groupLbl.className = 'au-group-label';
+      groupLbl.textContent = node.label;
 
-        option.addEventListener('pointerdown', (e) => {
-          e.preventDefault();
+      groupRow.appendChild(chevron);
+
+      /* Only add group checkbox when all direct children are leaves */
+      if (node.children.length && node.children.every((c) => c.isLeaf)) {
+        const groupCb = document.createElement('input');
+        groupCb.type = 'checkbox';
+        groupCb.className = 'au-checkbox au-group-cb';
+        groupCb.checked = checked;
+        groupCb.indeterminate = indeterminate;
+        const groupCbCustom = document.createElement('span');
+        groupCbCustom.className = 'au-checkbox-custom';
+        const groupCbWrap = document.createElement('label');
+        groupCbWrap.className = 'au-group-cb-wrap';
+        groupCbWrap.appendChild(groupCb);
+        groupCbWrap.appendChild(groupCbCustom);
+        groupCb.addEventListener('change', (e) => {
           e.stopPropagation();
-
-          if (!selected.includes(opt)) {
-            selected.push(opt);
-            renderSelected();
-            syncHidden();
-          }
-
-          searchInput.value = '';
-          renderMenu('');
-          openMenu();
-
-          window.requestAnimationFrame(() => {
-            searchInput.focus({ preventScroll: true });
-          });
+          toggleGroupLeaves(node, groupCb.checked);
+          renderAll(); // eslint-disable-line no-use-before-define
         });
+        groupRow.appendChild(groupCbWrap);
+      }
 
-        menu.appendChild(option);
-      });
+      groupRow.appendChild(groupLbl);
 
-      openMenu();
+      const toggleExpand = () => {
+        if (expandedGroups.has(node.label)) expandedGroups.delete(node.label);
+        else expandedGroups.add(node.label);
+        renderAll(); // eslint-disable-line no-use-before-define
+      };
+      chevron.addEventListener('click', toggleExpand);
+      groupLbl.addEventListener('click', toggleExpand);
+      parentEl.appendChild(groupRow);
+
+      if (isExpanded) {
+        const childrenEl = document.createElement('div');
+        childrenEl.className = `au-group-children au-group-children--depth-${depth}`;
+
+        const allAreGroups = node.children.every((c) => !c.isLeaf);
+        if (node.children.length >= 2 && allAreGroups) {
+          childrenEl.classList.add('au-group-children--columns');
+          node.children.forEach((child) => {
+            if (!nodeMatchesQuery(child, q)) return;
+            const col = document.createElement('div');
+            col.className = 'au-col';
+            buildGroupSection(child, depth + 1, col);
+            childrenEl.appendChild(col);
+          });
+        } else {
+          node.children.forEach((child) => {
+            if (child.isLeaf) {
+              if (!q || child.label.toLowerCase().includes(q)) {
+                childrenEl.appendChild(buildLeafRow(child.label, depth + 1));
+              }
+            } else {
+              buildGroupSection(child, depth + 1, childrenEl);
+            }
+          });
+        }
+        parentEl.appendChild(childrenEl);
+      }
     };
 
-    searchInput.addEventListener('focus', () => {
-      renderMenu(searchInput.value);
-    });
+    const renderPanel = () => {
+      auPanel.replaceChildren();
+      const q = auSearchQuery.toLowerCase();
 
-    searchInput.addEventListener('input', () => {
-      clearFieldError(hiddenInput, errorEl);
-      renderMenu(searchInput.value);
-    });
-
-    searchInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Backspace' && !searchInput.value && selected.length) {
-        selected.pop();
-        renderSelected();
-        syncHidden();
-        renderMenu('');
-        return;
-      }
-
-      if (e.key === 'Escape') {
-        closeMenu();
-        return;
-      }
-
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        const firstOption = menu.querySelector('.multi-select-option');
-        if (firstOption) firstOption.click();
-      }
-    });
-
-    searchInput.addEventListener('blur', () => {
-      window.setTimeout(() => {
-        const active = document.activeElement;
-        if (wrapper.contains(active)) return;
-
-        if (!selected.length) {
-          setFieldError(hiddenInput, errorEl, `${labelText} is required.`);
+      if (q) {
+        const filtered = allLeaves.filter((l) => l.toLowerCase().includes(q));
+        if (!filtered.length) {
+          const empty = document.createElement('div');
+          empty.className = 'au-empty';
+          empty.textContent = 'No matching accelerators found.';
+          auPanel.appendChild(empty);
         } else {
-          clearFieldError(hiddenInput, errorEl);
+          const list = document.createElement('div');
+          list.className = 'au-flat-list';
+          filtered.forEach((lbl) => list.appendChild(buildLeafRow(lbl, 1)));
+          auPanel.appendChild(list);
         }
+      } else {
+        const treeEl = document.createElement('div');
+        treeEl.className = 'au-tree';
+        tree.forEach((topNode) => {
+          const section = document.createElement('div');
+          section.className = 'au-section';
+          buildGroupSection(topNode, 0, section);
+          treeEl.appendChild(section);
+        });
+        auPanel.appendChild(treeEl);
+      }
 
-        closeMenu();
-      }, 50);
+      auPanel.appendChild(auChipsArea);
+
+      const hasAnyOther = tree.some((n) => n.label.toLowerCase().includes('other'));
+      if (hasAnyOther) auPanel.appendChild(auCustomWrap);
+    };
+
+    const renderAll = () => {
+      syncHidden();
+      renderChips();
+      renderPanel();
+    };
+
+    /* ── 5. Open / Close ────────────────────────────────────────── */
+    const openDropdown = () => {
+      auDropdownOpen = true;
+      auPanel.hidden = false;
+      auChevronBtn.classList.add('au-chevron-btn--open');
+      auSearchWrap.classList.add('au-search-wrap--open');
+    };
+
+    const closeDropdown = () => {
+      auDropdownOpen = false;
+      auPanel.hidden = true;
+      auChevronBtn.classList.remove('au-chevron-btn--open');
+      auSearchWrap.classList.remove('au-search-wrap--open');
+      if (!auSelected.size) {
+        setFieldError(hiddenInput, errorEl, `${labelText} is required.`);
+      } else {
+        clearFieldError(hiddenInput, errorEl);
+      }
+    };
+
+    auSearchInput.addEventListener('focus', () => { if (!auDropdownOpen) openDropdown(); });
+    auSearchInput.addEventListener('input', () => {
+      auSearchQuery = auSearchInput.value;
+      clearFieldError(hiddenInput, errorEl);
+      renderAll();
+      if (!auDropdownOpen) openDropdown();
     });
 
-    clearBtn.addEventListener('click', () => {
-      selected = [];
-      renderSelected();
-      syncHidden();
-      searchInput.value = '';
-      searchInput.focus({ preventScroll: true });
-      renderMenu('');
+    auChevronBtn.addEventListener('click', () => {
+      if (auDropdownOpen) closeDropdown();
+      else openDropdown();
     });
 
     document.addEventListener('click', (e) => {
-      if (!wrapper.contains(e.target)) {
-        closeMenu();
-        if (!selected.length) {
-          setFieldError(hiddenInput, errorEl, `${labelText} is required.`);
-        }
+      if (!shell.contains(e.target)) {
+        if (auDropdownOpen) closeDropdown();
       }
     });
 
-    renderSelected();
-    syncHidden();
+    auClearAll.addEventListener('click', () => {
+      auSelected.clear();
+      auSearchInput.value = '';
+      auSearchQuery = '';
+      renderAll();
+    });
 
-    inputRow.appendChild(searchInput);
-    inputRow.appendChild(clearBtn);
+    /* ── 6. Custom accelerator ──────────────────────────────────── */
+    const addCustom = () => {
+      const val = auCustomInput.value.trim();
+      if (!val) return;
+      auSelected.add(val);
+      auCustomInput.value = '';
+      renderAll();
+    };
+    auCustomAddBtn.addEventListener('click', addCustom);
+    auCustomInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); addCustom(); }
+    });
 
-    controlWrap.appendChild(topBar);
-    controlWrap.appendChild(selectedList);
-    controlWrap.appendChild(inputRow);
-    controlWrap.appendChild(menu);
-    controlWrap.appendChild(errorEl);
-    controlWrap.appendChild(hiddenInput);
+    /* ── 7. Assemble ────────────────────────────────────────────── */
+    shell.appendChild(auHeader);
+    shell.appendChild(auSearchWrap);
+    shell.appendChild(auPanel);
 
-    wrapper.appendChild(label);
-    wrapper.appendChild(controlWrap);
+    wrapper.appendChild(formLabel);
+    wrapper.appendChild(shell);
+    wrapper.appendChild(hiddenInput);
+    wrapper.appendChild(errorEl);
 
     registerField({
       label: labelText,
@@ -650,6 +805,7 @@ export default function decorate(block) {
       kind: 'multiselect',
     });
 
+    renderAll();
     return wrapper;
   };
 
@@ -843,13 +999,11 @@ export default function decorate(block) {
     }
 
     if (labelText === 'Accelerator Used') {
-      const options = normalizeList(valueText);
-
       form.appendChild(
-        createMultiSelectAccelerator({
+        createHierarchicalAcceleratorSelect({
           labelText,
           name: 'accelerator-used',
-          options,
+          contentEl: valueEl,
         }),
       );
       return;
