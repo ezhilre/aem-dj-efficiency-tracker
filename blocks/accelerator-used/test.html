@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accelerator Used – Test</title>
+  <link rel="stylesheet" href="accelerator-used.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; padding: 40px 24px; background: #f4f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    h1 { text-align: center; font-size: 22px; font-weight: 800; color: #e1251b; margin-bottom: 32px; }
+    .block-wrapper { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 32px; box-shadow: 0 8px 32px rgba(15,23,42,0.08); }
+    .preview { margin-top: 32px; max-width: 900px; margin-left: auto; margin-right: auto; padding: 16px; background: #1e293b; border-radius: 10px; color: #e2e8f0; font-family: monospace; font-size: 13px; }
+    .preview h2 { margin: 0 0 10px; font-size: 14px; color: #94a3b8; }
+    #output-value { color: #86efac; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <h1>&#128308; Accelerator Used Block &#8211; Adobe Theme Test</h1>
+
+  <div class="block-wrapper">
+    <div class="accelerator-used block">
+      <div>
+        <div>Accelerator Used</div>
+        <div>
+          <p>Accelerators</p>
+          <ul>
+            <li>Omnis.AI</li>
+            <li>AEP Segment Manager</li>
+            <li>IMS Org Migration</li>
+            <li>CJA Commit</li>
+            <li>ATLAS</li>
+            <li>Health Assessment Suite</li>
+            <li>Journey Runtime</li>
+            <li>PrecisionCX</li>
+            <li>Journey/Analytics Intelligence Hub</li>
+            <li>Journey Ignite: Migration Studio</li>
+            <li>Journey Assure</li>
+          </ul>
+          <ul>
+            <li>
+              <p>Tools and Platforms</p>
+              <ul>
+                <li>
+                  <p>Design and Build</p>
+                  <ul>
+                    <li>Cursor</li>
+                    <li>Github Copilot</li>
+                    <li>ACS Copilot</li>
+                    <li>Chat GPT</li>
+                    <li>Codex</li>
+                    <li>Claude</li>
+                    <li>Fluffy Jaws</li>
+                  </ul>
+                </li>
+                <li>
+                  <p>Validation</p>
+                  <ul>
+                    <li>Sauce Labs</li>
+                    <li>Browser Stack</li>
+                    <li>Chrome Extensions</li>
+                    <li>Postman</li>
+                    <li>PostBuster</li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+            <li>
+              <p>Built by Products</p>
+              <ul>
+                <li>
+                  <p>Agents in Products</p>
+                  <ul>
+                    <li>Product Support Agent</li>
+                    <li>Data Insights Agent</li>
+                    <li>Audience Agent</li>
+                    <li>Journey &amp; Experimentation Agent</li>
+                  </ul>
+                </li>
+                <li>
+                  <p>Other Tools</p>
+                  <ul>
+                    <li>Sandbox Tooling</li>
+                    <li>Migration Tools - ACC</li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+            <li>
+              <p>Any Other</p>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="preview">
+    <h2>Hidden input value (what gets submitted):</h2>
+    <div id="output-value">&#8211;</div>
+  </div>
+
+  <script type="module">
+    import decorate from './accelerator-used.js';
+
+    const block = document.querySelector('.accelerator-used.block');
+    decorate(block);
+
+    // Watch hidden input and mirror to output preview
+    const observer = new MutationObserver(() => {
+      const hidden = document.getElementById('accelerator-used');
+      document.getElementById('output-value').textContent = (hidden && hidden.value) || '–';
+    });
+
+    // Poll every 300ms as a simple approach (hidden input changes don't fire MutationObserver)
+    setInterval(() => {
+      const hidden = document.getElementById('accelerator-used');
+      if (hidden) {
+        document.getElementById('output-value').textContent = hidden.value || '–';
+      }
+    }, 300);
+  </script>
+</body>
+</html>

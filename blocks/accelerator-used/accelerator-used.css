@@ -1,0 +1,524 @@
+/* ================================================================
+   Accelerator Used Block – Adobe Red Theme
+   ================================================================ */
+
+/* ── Shell ──────────────────────────────────────────────────────── */
+.accelerator-used .au-shell {
+  max-width: 860px;
+  margin: 0 auto;
+  font-family: var(--body-font-family, 'Adobe Clean', sans-serif);
+  font-size: 15px;
+  color: #1f2937;
+}
+
+/* ── Header ─────────────────────────────────────────────────────── */
+.au-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.au-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.au-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.01em;
+  font-family: var(--heading-font-family, sans-serif);
+}
+
+.au-subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.au-clear-all {
+  border: none;
+  background: none;
+  color: #e1251b;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: opacity 0.15s ease;
+  white-space: nowrap;
+  margin-top: 4px;
+}
+
+.au-clear-all:hover {
+  opacity: 0.75;
+  text-decoration: underline;
+}
+
+/* ── Search bar ──────────────────────────────────────────────────── */
+.au-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  min-height: 52px;
+}
+
+.au-search-wrap--open,
+.au-search-wrap:focus-within {
+  border-color: #e1251b;
+  box-shadow: 0 0 0 3px rgba(225, 37, 27, 0.1);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.au-search-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: #9ca3af;
+}
+
+.au-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 15px;
+  color: #111827;
+  padding: 14px 0;
+  min-width: 0;
+}
+
+.au-search-input::placeholder {
+  color: #9ca3af;
+}
+
+.au-chevron-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 4px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  transition: color 0.15s ease, transform 0.2s ease;
+}
+
+.au-chevron-btn:hover {
+  color: #e1251b;
+}
+
+.au-chevron-btn--open {
+  transform: rotate(180deg);
+  color: #e1251b;
+}
+
+/* ── Dropdown Panel ──────────────────────────────────────────────── */
+.au-panel {
+  border: 1.5px solid #e1251b;
+  border-top: none;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  background: #fff;
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.au-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.au-panel::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 999px;
+}
+
+.au-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ── Tree ────────────────────────────────────────────────────────── */
+.au-tree {
+  padding: 8px 0;
+}
+
+.au-section {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.au-section:last-child {
+  border-bottom: none;
+}
+
+/* ── Group Row ───────────────────────────────────────────────────── */
+.au-group-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+  user-select: none;
+  background: #f9fafb;
+  border-top: 1px solid #f0f1f3;
+  position: relative;
+  transition: background-color 0.14s ease;
+}
+
+.au-group-row:first-child {
+  border-top: none;
+}
+
+.au-group-row:hover {
+  background: #f3f4f6;
+}
+
+.au-group-row--open {
+  background: #fff5f5;
+}
+
+.au-group-row--open:hover {
+  background: #fdecea;
+}
+
+/* Depth indentation for group rows */
+.au-group-row.au-item--depth-0 {
+  padding-left: 16px;
+}
+
+.au-group-row.au-item--depth-1 {
+  padding-left: 32px;
+  background: #fff;
+  font-size: 14px;
+}
+
+.au-group-row.au-item--depth-2 {
+  padding-left: 48px;
+  background: #fff;
+  font-size: 13px;
+}
+
+.au-group-chevron {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: #9ca3af;
+  transition: transform 0.2s ease, color 0.15s ease;
+}
+
+.au-group-row--open .au-group-chevron {
+  transform: rotate(90deg);
+  color: #e1251b;
+}
+
+.au-group-label {
+  flex: 1;
+  font-weight: 700;
+  font-size: 14px;
+  color: #374151;
+  letter-spacing: 0.005em;
+}
+
+.au-group-row--open .au-group-label {
+  color: #c01c12;
+}
+
+/* ── Group Checkbox Wrap ─────────────────────────────────────────── */
+.au-group-cb-wrap {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ── Children Container ──────────────────────────────────────────── */
+.au-group-children {
+  padding: 4px 0;
+}
+
+.au-group-children--columns {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  border-top: 1px solid #f3f4f6;
+}
+
+.au-col {
+  border-right: 1px solid #f3f4f6;
+  padding-bottom: 8px;
+}
+
+.au-col:last-child {
+  border-right: none;
+}
+
+/* ── Leaf Item Row ───────────────────────────────────────────────── */
+.au-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.12s ease;
+  border-radius: 0;
+}
+
+.au-item:hover {
+  background: #fff5f5;
+}
+
+.au-item--depth-1 {
+  padding-left: 32px;
+}
+
+.au-item--depth-2 {
+  padding-left: 48px;
+}
+
+.au-item--depth-3 {
+  padding-left: 64px;
+}
+
+.au-item-label {
+  font-size: 14px;
+  color: #374151;
+  flex: 1;
+  line-height: 1.4;
+}
+
+/* ── Custom Checkbox ─────────────────────────────────────────────── */
+.au-checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.au-checkbox-custom {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 4px;
+  background: #fff;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+}
+
+.au-checkbox:checked + .au-checkbox-custom {
+  background: #e1251b;
+  border-color: #e1251b;
+  box-shadow: 0 2px 8px rgba(225, 37, 27, 0.25);
+}
+
+.au-checkbox:checked + .au-checkbox-custom::after {
+  content: '';
+  display: block;
+  width: 5px;
+  height: 9px;
+  border: 2px solid #fff;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg) translateY(-1px);
+}
+
+.au-checkbox:indeterminate + .au-checkbox-custom {
+  background: #e1251b;
+  border-color: #e1251b;
+}
+
+.au-checkbox:indeterminate + .au-checkbox-custom::after {
+  content: '';
+  display: block;
+  width: 10px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+}
+
+.au-checkbox:focus-visible + .au-checkbox-custom {
+  box-shadow: 0 0 0 3px rgba(225, 37, 27, 0.2);
+}
+
+/* ── Flat search list ────────────────────────────────────────────── */
+.au-flat-list {
+  padding: 8px 0;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────── */
+.au-empty {
+  padding: 24px 20px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* ── Chips area ──────────────────────────────────────────────────── */
+.au-chips-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid #f3f4f6;
+  background: #fafafa;
+}
+
+.au-chips-area[hidden] {
+  display: none;
+}
+
+.au-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 8px;
+  border-radius: 999px;
+  background: #fff0ef;
+  border: 1px solid #fac9c6;
+  font-size: 13px;
+  font-weight: 600;
+  color: #b91c1c;
+  white-space: nowrap;
+}
+
+.au-chip-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: #e1251b;
+  border-radius: 50%;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.au-chip-text {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.au-chip-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: rgba(185, 28, 28, 0.12);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  color: #b91c1c;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background-color 0.12s ease;
+}
+
+.au-chip-remove:hover {
+  background: rgba(185, 28, 28, 0.22);
+}
+
+/* ── Custom input ────────────────────────────────────────────────── */
+.au-custom-wrap {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 16px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.au-custom-input {
+  flex: 1;
+  height: 40px;
+  padding: 8px 14px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #111827;
+  background: #fff;
+  outline: none;
+  min-width: 0;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.au-custom-input::placeholder {
+  color: #9ca3af;
+}
+
+.au-custom-input:focus {
+  border-color: #e1251b;
+  box-shadow: 0 0 0 3px rgba(225, 37, 27, 0.1);
+}
+
+.au-custom-add {
+  height: 40px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 8px;
+  background: #e1251b;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.12s ease;
+  white-space: nowrap;
+}
+
+.au-custom-add:hover {
+  background: #c81d17;
+  transform: translateY(-1px);
+}
+
+.au-custom-add:active {
+  transform: scale(0.97);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .au-group-children--columns {
+    grid-template-columns: 1fr;
+  }
+
+  .au-col {
+    border-right: none;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .au-col:last-child {
+    border-bottom: none;
+  }
+
+  .au-chip-text {
+    max-width: 130px;
+  }
+
+  .au-custom-wrap {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .au-custom-add {
+    width: 100%;
+  }
+}
