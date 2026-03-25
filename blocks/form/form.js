@@ -84,17 +84,268 @@ export default function decorate(block) {
     return wrapper;
   };
 
-  const createStackField = (labelText, field, errorEl) => {
+  /**
+   * Custom calendar widget that opens below the calendar icon.
+   * Returns { wrapper, hiddenInput } — wrapper is the styled div with icon,
+   * hiddenInput is <input type="hidden"> that stores the ISO date value.
+   */
+  const createCustomDatePicker = ({ id, name, errorEl }) => {
+    const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'];
+    const today = new Date();
+    let viewYear = today.getFullYear();
+    let viewMonth = today.getMonth();
+    let selectedDate = null;
+
+    /* Outer wrapper */
+    const pickerWrap = document.createElement('div');
+    pickerWrap.className = 'cdp-wrap';
+
+    /* Display field */
+    const displayInput = document.createElement('div');
+    displayInput.className = 'cdp-display';
+    displayInput.setAttribute('role', 'button');
+    displayInput.setAttribute('tabindex', '0');
+    displayInput.setAttribute('aria-label', 'Pick a date');
+    displayInput.setAttribute('id', id);
+
+    const displayText = document.createElement('span');
+    displayText.className = 'cdp-display-text cdp-placeholder';
+    displayText.textContent = 'dd/mm/yyyy';
+    displayInput.appendChild(displayText);
+
+    const calIcon = document.createElement('span');
+    calIcon.className = 'cdp-icon';
+    calIcon.setAttribute('aria-hidden', 'true');
+    calIcon.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+    displayInput.appendChild(calIcon);
+
+    /* Hidden input for form value */
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = name;
+    hiddenInput.id = `${id}-hidden`;
+
+    /* Calendar popup */
+    const popup = document.createElement('div');
+    popup.className = 'cdp-popup';
+    popup.hidden = true;
+    popup.setAttribute('role', 'dialog');
+    popup.setAttribute('aria-modal', 'true');
+    popup.setAttribute('aria-label', 'Date picker');
+
+    let isOpen = false;
+
+    const formatDisplay = (d) => {
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yyyy = d.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    };
+
+    const toISO = (d) => {
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      return `${d.getFullYear()}-${mm}-${dd}`;
+    };
+
+    const renderCalendar = () => {
+      popup.replaceChildren();
+
+      /* Header row */
+      const header = document.createElement('div');
+      header.className = 'cdp-header';
+
+      const prevBtn = document.createElement('button');
+      prevBtn.type = 'button';
+      prevBtn.className = 'cdp-nav-btn';
+      prevBtn.setAttribute('aria-label', 'Previous month');
+      prevBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
+
+      const monthLabel = document.createElement('div');
+      monthLabel.className = 'cdp-month-label';
+      monthLabel.textContent = `${MONTHS[viewMonth]} ${viewYear}`;
+
+      const nextBtn = document.createElement('button');
+      nextBtn.type = 'button';
+      nextBtn.className = 'cdp-nav-btn';
+      nextBtn.setAttribute('aria-label', 'Next month');
+      nextBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+
+      prevBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        viewMonth -= 1;
+        if (viewMonth < 0) { viewMonth = 11; viewYear -= 1; }
+        renderCalendar();
+      });
+
+      nextBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        viewMonth += 1;
+        if (viewMonth > 11) { viewMonth = 0; viewYear += 1; }
+        renderCalendar();
+      });
+
+      header.appendChild(prevBtn);
+      header.appendChild(monthLabel);
+      header.appendChild(nextBtn);
+      popup.appendChild(header);
+
+      /* Day-of-week row */
+      const dowRow = document.createElement('div');
+      dowRow.className = 'cdp-dow-row';
+      ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].forEach((d) => {
+        const cell = document.createElement('span');
+        cell.className = 'cdp-dow';
+        cell.textContent = d;
+        dowRow.appendChild(cell);
+      });
+      popup.appendChild(dowRow);
+
+      /* Days grid */
+      const grid = document.createElement('div');
+      grid.className = 'cdp-grid';
+
+      const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+      const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+      /* Leading blanks */
+      for (let i = 0; i < firstDay; i += 1) {
+        const blank = document.createElement('span');
+        blank.className = 'cdp-day cdp-day--blank';
+        grid.appendChild(blank);
+      }
+
+      for (let d = 1; d <= daysInMonth; d += 1) {
+        const dayBtn = document.createElement('button');
+        dayBtn.type = 'button';
+        dayBtn.className = 'cdp-day';
+        dayBtn.textContent = d;
+
+        const isToday = d === today.getDate()
+          && viewMonth === today.getMonth()
+          && viewYear === today.getFullYear();
+        if (isToday) dayBtn.classList.add('cdp-day--today');
+
+        if (selectedDate
+          && d === selectedDate.getDate()
+          && viewMonth === selectedDate.getMonth()
+          && viewYear === selectedDate.getFullYear()) {
+          dayBtn.classList.add('cdp-day--selected');
+        }
+
+        dayBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectedDate = new Date(viewYear, viewMonth, d);
+          hiddenInput.value = toISO(selectedDate);
+          displayText.textContent = formatDisplay(selectedDate);
+          displayText.classList.remove('cdp-placeholder');
+          displayInput.classList.remove('cdp-display--invalid');
+
+          /* Trigger change for validation */
+          hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+          clearFieldError(hiddenInput, errorEl);
+
+          /* Close */
+          popup.hidden = true;
+          isOpen = false;
+          displayInput.classList.remove('cdp-display--open');
+        });
+
+        grid.appendChild(dayBtn);
+      }
+
+      popup.appendChild(grid);
+
+      /* Footer: Today / Clear */
+      const footer = document.createElement('div');
+      footer.className = 'cdp-footer';
+
+      const clearBtn = document.createElement('button');
+      clearBtn.type = 'button';
+      clearBtn.className = 'cdp-foot-btn';
+      clearBtn.textContent = 'Clear';
+      clearBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectedDate = null;
+        hiddenInput.value = '';
+        displayText.textContent = 'dd/mm/yyyy';
+        displayText.classList.add('cdp-placeholder');
+        popup.hidden = true;
+        isOpen = false;
+        displayInput.classList.remove('cdp-display--open');
+      });
+
+      const todayBtn = document.createElement('button');
+      todayBtn.type = 'button';
+      todayBtn.className = 'cdp-foot-btn cdp-foot-btn--today';
+      todayBtn.textContent = 'Today';
+      todayBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        viewYear = selectedDate.getFullYear();
+        viewMonth = selectedDate.getMonth();
+        hiddenInput.value = toISO(selectedDate);
+        displayText.textContent = formatDisplay(selectedDate);
+        displayText.classList.remove('cdp-placeholder');
+        clearFieldError(hiddenInput, errorEl);
+        popup.hidden = true;
+        isOpen = false;
+        displayInput.classList.remove('cdp-display--open');
+      });
+
+      footer.appendChild(clearBtn);
+      footer.appendChild(todayBtn);
+      popup.appendChild(footer);
+    };
+
+    const openPicker = () => {
+      isOpen = true;
+      renderCalendar();
+      popup.hidden = false;
+      displayInput.classList.add('cdp-display--open');
+    };
+
+    const closePicker = () => {
+      isOpen = false;
+      popup.hidden = true;
+      displayInput.classList.remove('cdp-display--open');
+    };
+
+    displayInput.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (isOpen) closePicker(); else openPicker();
+    });
+
+    displayInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (isOpen) closePicker(); else openPicker(); }
+      if (e.key === 'Escape') closePicker();
+    });
+
+    popup.addEventListener('click', (e) => e.stopPropagation());
+
+    document.addEventListener('click', (e) => {
+      if (!pickerWrap.contains(e.target) && isOpen) closePicker();
+    });
+
+    pickerWrap.appendChild(displayInput);
+    pickerWrap.appendChild(popup);
+
+    return { pickerWrap, hiddenInput };
+  };
+
+  const createStackField = (labelText, fieldInfo, errorEl) => {
     const wrapper = document.createElement('div');
     wrapper.className = 'form-date-field';
 
     const label = document.createElement('label');
     label.textContent = labelText;
-    label.setAttribute('for', field.id);
+    label.setAttribute('for', fieldInfo.id || fieldInfo.name);
 
     const controlWrap = document.createElement('div');
     controlWrap.className = 'form-control-wrap';
-    controlWrap.appendChild(field);
+    controlWrap.appendChild(fieldInfo.displayEl || fieldInfo);
+    if (fieldInfo.hiddenInput) controlWrap.appendChild(fieldInfo.hiddenInput);
     controlWrap.appendChild(errorEl);
 
     wrapper.appendChild(label);
@@ -106,8 +357,8 @@ export default function decorate(block) {
   const createDateRangeRow = (fromField, toField) => {
     const wrapper = document.createElement('div');
     wrapper.className = 'form-row form-row-dates';
-    wrapper.appendChild(createStackField(fromField.label, fromField.field, fromField.errorEl));
-    wrapper.appendChild(createStackField(toField.label, toField.field, toField.errorEl));
+    wrapper.appendChild(createStackField(fromField.label, fromField.fieldInfo, fromField.errorEl));
+    wrapper.appendChild(createStackField(toField.label, toField.fieldInfo, toField.errorEl));
     return wrapper;
   };
 
@@ -960,29 +1211,45 @@ export default function decorate(block) {
     }
 
     if (labelText === 'From Date' || labelText === 'To Date') {
-      field = document.createElement('input');
-      field.type = 'date';
-      field.name = normalizeName(labelText);
-      field.id = field.name;
-      field.required = true;
+      const dateId = normalizeName(labelText);
+      const { pickerWrap, hiddenInput: dateHidden } = createCustomDatePicker({
+        id: dateId,
+        name: dateId,
+        errorEl,
+      });
 
+      /* Register the hidden input for validation */
       registerField({
         label: labelText,
-        field,
+        field: dateHidden,
         errorEl,
         kind: 'date',
       });
 
+      const fieldInfo = { id: dateId, displayEl: pickerWrap, hiddenInput: dateHidden };
+
       if (labelText === 'From Date') {
-        pendingDateField = { label: labelText, field, errorEl };
+        pendingDateField = { label: labelText, fieldInfo, errorEl };
         return;
       }
 
       if (pendingDateField) {
-        form.appendChild(createDateRangeRow(pendingDateField, { label: labelText, field, errorEl }));
+        form.appendChild(createDateRangeRow(pendingDateField, { label: labelText, fieldInfo, errorEl }));
         pendingDateField = null;
       } else {
-        form.appendChild(createRow(labelText, field, errorEl));
+        const singleWrap = document.createElement('div');
+        singleWrap.className = 'form-row';
+        const lbl = document.createElement('label');
+        lbl.textContent = labelText;
+        lbl.setAttribute('for', dateId);
+        const ctrl = document.createElement('div');
+        ctrl.className = 'form-control-wrap';
+        ctrl.appendChild(pickerWrap);
+        ctrl.appendChild(dateHidden);
+        ctrl.appendChild(errorEl);
+        singleWrap.appendChild(lbl);
+        singleWrap.appendChild(ctrl);
+        form.appendChild(singleWrap);
       }
       return;
     }
@@ -1050,7 +1317,20 @@ export default function decorate(block) {
   });
 
   if (pendingDateField) {
-    form.appendChild(createRow(pendingDateField.label, pendingDateField.field, pendingDateField.errorEl));
+    const singleWrap = document.createElement('div');
+    singleWrap.className = 'form-row';
+    const lbl = document.createElement('label');
+    lbl.textContent = pendingDateField.label;
+    const fi = pendingDateField.fieldInfo;
+    lbl.setAttribute('for', fi.id);
+    const ctrl = document.createElement('div');
+    ctrl.className = 'form-control-wrap';
+    ctrl.appendChild(fi.displayEl);
+    ctrl.appendChild(fi.hiddenInput);
+    ctrl.appendChild(pendingDateField.errorEl);
+    singleWrap.appendChild(lbl);
+    singleWrap.appendChild(ctrl);
+    form.appendChild(singleWrap);
     pendingDateField = null;
   }
 
