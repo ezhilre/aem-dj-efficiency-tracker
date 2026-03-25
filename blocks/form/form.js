@@ -1013,6 +1013,11 @@ export default function decorate(block) {
         const treeEl = document.createElement('div');
         treeEl.className = 'au-tree';
         tree.forEach((topNode) => {
+          /* Skip "Any Other" empty groups — rendered separately as a label */
+          const isAnyOther = topNode.label.toLowerCase().includes('any other')
+            || (topNode.label.toLowerCase().includes('other') && topNode.children.length === 0);
+          if (isAnyOther) return;
+
           const section = document.createElement('div');
           section.className = 'au-section';
           buildGroupSection(topNode, 0, section);
@@ -1021,8 +1026,22 @@ export default function decorate(block) {
         auPanel.appendChild(treeEl);
       }
 
-      const hasAnyOther = tree.some((n) => n.label.toLowerCase().includes('other'));
-      if (hasAnyOther) auPanel.appendChild(auCustomWrap);
+      const hasAnyOther = tree.some(
+        (n) => n.label.toLowerCase().includes('any other')
+          || (n.label.toLowerCase().includes('other') && n.children.length === 0),
+      );
+      if (hasAnyOther) {
+        const anyOtherSection = document.createElement('div');
+        anyOtherSection.className = 'au-any-other-section';
+
+        const anyOtherLabel = document.createElement('div');
+        anyOtherLabel.className = 'au-any-other-label';
+        anyOtherLabel.textContent = 'Any Other';
+        anyOtherSection.appendChild(anyOtherLabel);
+
+        anyOtherSection.appendChild(auCustomWrap);
+        auPanel.appendChild(anyOtherSection);
+      }
     };
 
     const renderAll = () => {
