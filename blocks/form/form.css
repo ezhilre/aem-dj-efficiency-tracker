@@ -1049,6 +1049,34 @@ main > .section:first-of-type {
   border-radius: 999px;
 }
 
+/* Panel toolbar (Expand All / Collapse All) */
+.au-panel-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 8px 16px 4px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.au-expand-all-btn {
+  border: none;
+  background: none;
+  color: #e1251b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 2px;
+  transition: opacity 0.15s ease;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  font-family: inherit;
+}
+
+.au-expand-all-btn:hover {
+  opacity: 0.75;
+  text-decoration: underline;
+}
+
 /* Tree */
 .au-tree {
   padding: 6px 0;

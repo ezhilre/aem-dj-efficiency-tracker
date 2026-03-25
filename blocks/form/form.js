@@ -956,6 +956,25 @@ export default function decorate(block) {
       }
     };
 
+    /** Collect all non-leaf group labels in the tree */
+    const allGroupLabels = [];
+    const collectGroupLabels = (nodes) => {
+      nodes.forEach((n) => {
+        if (!n.isLeaf) {
+          allGroupLabels.push(n.label);
+          collectGroupLabels(n.children);
+        }
+      });
+    };
+    collectGroupLabels(tree);
+
+    const areAllGroupsExpanded = () =>
+      allGroupLabels.length > 0 && allGroupLabels.every((l) => expandedGroups.has(l));
+
+    const expandAll = () => allGroupLabels.forEach((l) => expandedGroups.add(l));
+
+    const collapseAll = () => expandedGroups.clear();
+
     const renderPanel = () => {
       auPanel.replaceChildren();
       const q = auSearchQuery.toLowerCase();
@@ -974,6 +993,23 @@ export default function decorate(block) {
           auPanel.appendChild(list);
         }
       } else {
+        /* Expand All / Collapse All toolbar */
+        const panelToolbar = document.createElement('div');
+        panelToolbar.className = 'au-panel-toolbar';
+
+        const expandAllBtn = document.createElement('button');
+        expandAllBtn.type = 'button';
+        expandAllBtn.className = 'au-expand-all-btn';
+        expandAllBtn.textContent = areAllGroupsExpanded() ? 'Collapse All' : 'Expand All';
+        expandAllBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (areAllGroupsExpanded()) collapseAll();
+          else expandAll();
+          renderAll(); // eslint-disable-line no-use-before-define
+        });
+        panelToolbar.appendChild(expandAllBtn);
+        auPanel.appendChild(panelToolbar);
+
         const treeEl = document.createElement('div');
         treeEl.className = 'au-tree';
         tree.forEach((topNode) => {
