@@ -371,6 +371,39 @@ export default function decorate(block) {
     }
   };
 
+  /** Check if all groups are currently expanded */
+  const areAllGroupsExpanded = () => {
+    const allGroupLabels = [];
+    const collectGroups = (nodes) => {
+      nodes.forEach((n) => {
+        if (!n.isLeaf) {
+          allGroupLabels.push(n.label);
+          collectGroups(n.children);
+        }
+      });
+    };
+    collectGroups(tree);
+    return allGroupLabels.length > 0 && allGroupLabels.every((l) => expandedGroups.has(l));
+  };
+
+  /** Expand all groups recursively */
+  const expandAll = () => {
+    const addAll = (nodes) => {
+      nodes.forEach((n) => {
+        if (!n.isLeaf) {
+          expandedGroups.add(n.label);
+          addAll(n.children);
+        }
+      });
+    };
+    addAll(tree);
+  };
+
+  /** Collapse all groups */
+  const collapseAll = () => {
+    expandedGroups.clear();
+  };
+
   const renderPanel = () => {
     panel.replaceChildren();
 
@@ -393,6 +426,27 @@ export default function decorate(block) {
         panel.appendChild(list);
       }
     } else {
+      // Expand All / Collapse All toolbar
+      const panelToolbar = document.createElement('div');
+      panelToolbar.className = 'au-panel-toolbar';
+
+      const expandAllBtn = document.createElement('button');
+      expandAllBtn.type = 'button';
+      expandAllBtn.className = 'au-expand-all-btn';
+      const allExpanded = areAllGroupsExpanded();
+      expandAllBtn.textContent = allExpanded ? 'Collapse All' : 'Expand All';
+      expandAllBtn.addEventListener('click', () => {
+        if (areAllGroupsExpanded()) {
+          collapseAll();
+        } else {
+          expandAll();
+        }
+        renderAll();
+      });
+
+      panelToolbar.appendChild(expandAllBtn);
+      panel.appendChild(panelToolbar);
+
       // Show full tree
       const treeEl = document.createElement('div');
       treeEl.className = 'au-tree';
