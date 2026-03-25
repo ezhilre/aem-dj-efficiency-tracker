@@ -1019,8 +1019,8 @@ main > .section:first-of-type {
 /* Chips area */
 .au-chips-area {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 10px;
   padding: 12px 16px;
   border-top: 1px solid #f3f4f6;
   background: #fafafa;
@@ -1028,6 +1028,20 @@ main > .section:first-of-type {
 
 .au-chips-area[hidden] {
   display: none;
+}
+
+.au-chips-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.au-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .au-chip {

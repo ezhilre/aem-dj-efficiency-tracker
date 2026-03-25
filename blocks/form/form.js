@@ -525,6 +525,17 @@ export default function decorate(block) {
       auChipsArea.replaceChildren();
       if (!auSelected.size) { auChipsArea.hidden = true; return; }
       auChipsArea.hidden = false;
+
+      /* "Selected items" heading */
+      const chipsLabel = document.createElement('div');
+      chipsLabel.className = 'au-chips-label';
+      chipsLabel.textContent = 'Selected items';
+      auChipsArea.appendChild(chipsLabel);
+
+      const chipsRow = document.createElement('div');
+      chipsRow.className = 'au-chips-row';
+      auChipsArea.appendChild(chipsRow);
+
       [...auSelected].forEach((val) => {
         const chip = document.createElement('span');
         chip.className = 'au-chip';
@@ -551,7 +562,7 @@ export default function decorate(block) {
         chip.appendChild(chkMark);
         chip.appendChild(chipText);
         chip.appendChild(removeBtn);
-        auChipsArea.appendChild(chip);
+        chipsRow.appendChild(chip);
       });
     };
 
@@ -570,11 +581,13 @@ export default function decorate(block) {
       cb.className = 'au-checkbox';
       cb.value = lbl;
       cb.checked = auSelected.has(lbl);
-      cb.addEventListener('change', () => {
+      cb.addEventListener('change', (e) => {
+        e.stopPropagation();
         if (cb.checked) auSelected.add(lbl);
         else auSelected.delete(lbl);
         renderAll(); // eslint-disable-line no-use-before-define
       });
+      row.addEventListener('click', (e) => e.stopPropagation());
 
       const cbCustom = document.createElement('span');
       cbCustom.className = 'au-checkbox-custom';
@@ -645,18 +658,21 @@ export default function decorate(block) {
           toggleGroupLeaves(node, groupCb.checked);
           renderAll(); // eslint-disable-line no-use-before-define
         });
+        groupCbWrap.addEventListener('click', (e) => e.stopPropagation());
         groupRow.appendChild(groupCbWrap);
       }
 
       groupRow.appendChild(groupLbl);
 
-      const toggleExpand = () => {
+      const toggleExpand = (e) => {
+        e.stopPropagation();
         if (expandedGroups.has(node.label)) expandedGroups.delete(node.label);
         else expandedGroups.add(node.label);
         renderAll(); // eslint-disable-line no-use-before-define
       };
       chevron.addEventListener('click', toggleExpand);
       groupLbl.addEventListener('click', toggleExpand);
+      groupRow.addEventListener('click', (e) => e.stopPropagation());
       parentEl.appendChild(groupRow);
 
       if (isExpanded) {
