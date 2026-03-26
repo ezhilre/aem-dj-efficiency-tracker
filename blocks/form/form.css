@@ -678,6 +678,13 @@ main > .section:first-of-type {
   transition: background-color 0.14s ease, color 0.14s ease;
 }
 
+.cdp-nav-btn--disabled,
+.cdp-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .cdp-nav-btn:hover {
   background: #fdecea;
   color: #e1251b;
@@ -729,6 +736,14 @@ main > .section:first-of-type {
 .cdp-day--blank {
   background: transparent;
   cursor: default;
+  pointer-events: none;
+}
+
+.cdp-day--disabled,
+.cdp-day:disabled {
+  color: #ccc;
+  background: none;
+  cursor: not-allowed;
   pointer-events: none;
 }
 

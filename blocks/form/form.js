@@ -179,8 +179,16 @@ export default function decorate(block) {
         renderCalendar();
       });
 
+      /* Disable next button if already on current month/year */
+      const isCurrentMonthView = viewYear === today.getFullYear() && viewMonth === today.getMonth();
+      const isFutureMonthView = viewYear > today.getFullYear()
+        || (viewYear === today.getFullYear() && viewMonth > today.getMonth());
+      nextBtn.disabled = isCurrentMonthView || isFutureMonthView;
+      nextBtn.classList.toggle('cdp-nav-btn--disabled', nextBtn.disabled);
+
       nextBtn.addEventListener('click', (e) => {
         e.stopPropagation();
+        if (nextBtn.disabled) return;
         viewMonth += 1;
         if (viewMonth > 11) { viewMonth = 0; viewYear += 1; }
         renderCalendar();
@@ -222,10 +230,19 @@ export default function decorate(block) {
         dayBtn.className = 'cdp-day';
         dayBtn.textContent = d;
 
+        const thisDate = new Date(viewYear, viewMonth, d);
+        const isFuture = thisDate > today;
+
         const isToday = d === today.getDate()
           && viewMonth === today.getMonth()
           && viewYear === today.getFullYear();
         if (isToday) dayBtn.classList.add('cdp-day--today');
+
+        if (isFuture) {
+          dayBtn.classList.add('cdp-day--disabled');
+          dayBtn.disabled = true;
+          dayBtn.setAttribute('aria-disabled', 'true');
+        }
 
         if (selectedDate
           && d === selectedDate.getDate()
