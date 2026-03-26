@@ -1193,9 +1193,23 @@ export default function decorate(block) {
       details.appendChild(row);
     });
 
+    const addAnotherWrap = document.createElement('div');
+    addAnotherWrap.className = 'form-success-add-another';
+
+    const addAnotherBtn = document.createElement('button');
+    addAnotherBtn.type = 'button';
+    addAnotherBtn.className = 'form-success-add-another-btn';
+    addAnotherBtn.textContent = 'Add Another Submission';
+    addAnotherBtn.addEventListener('click', () => {
+      window.location.reload();
+    });
+
+    addAnotherWrap.appendChild(addAnotherBtn);
+
     success.appendChild(title);
     success.appendChild(summary);
     success.appendChild(details);
+    success.appendChild(addAnotherWrap);
 
     return success;
   };

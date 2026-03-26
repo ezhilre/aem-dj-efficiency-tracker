@@ -455,6 +455,35 @@
   word-break: break-word;
 }
 
+.form-success-add-another {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.form-success-add-another-btn {
+  min-height: 54px;
+  padding: 14px 26px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #e1251b 0%, #c81d17 100%);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 12px 24px rgba(225, 37, 27, 0.2);
+}
+
+.form-success-add-another-btn:hover {
+  filter: brightness(1.02);
+  transform: translateY(-1px);
+}
+
+.form-success-add-another-btn:active {
+  transform: scale(0.98);
+}
+
 @media (max-width: 700px) {
   .form,
   .weekly-report-form {
