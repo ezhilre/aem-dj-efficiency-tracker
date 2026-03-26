@@ -537,9 +537,11 @@
 /* Footer action */
 .form-success-add-another {
   display: flex;
+  flex-direction: row;
   justify-content: flex-end;
   align-items: center;
-  padding: 20px 24px;
+  min-height: 72px;
+  padding: 16px 24px;
   background: #f9fafb;
   border-top: 1px solid #f1f5f9;
 }

@@ -1234,7 +1234,7 @@ export default function decorate(block) {
     const addAnotherBtn = document.createElement('button');
     addAnotherBtn.type = 'button';
     addAnotherBtn.className = 'form-success-add-another-btn';
-    addAnotherBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Another Submission';
+    addAnotherBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Another Project';
     addAnotherBtn.addEventListener('click', () => {
       window.location.reload();
     });
