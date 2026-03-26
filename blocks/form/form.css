@@ -424,14 +424,11 @@
 
 /* Hero banner */
 .form-success-banner {
-  display: flex;
-  flex-direction: row;
-  gap: 24px;
-  padding: 28px 32px;
-  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0e4d2e 100%);
   position: relative;
   overflow: hidden;
-  min-height: 96px;
+  min-height: 112px;
+  padding: 24px 32px 24px 124px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0e4d2e 100%);
   box-sizing: border-box;
 }
 
@@ -444,29 +441,28 @@
 }
 
 .form-success-icon {
+  position: absolute;
+  top: 50%;
+  left: 32px;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
   justify-content: center;
   width: 68px;
   height: 68px;
-  min-width: 68px;
   border-radius: 50%;
   background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
   color: #fff;
   box-shadow: 0 8px 24px rgba(34, 197, 94, 0.4);
-  flex-shrink: 0;
-  align-self: center;
-  z-index: 1;
-  position: relative;
+  z-index: 2;
 }
 
 .form-success-banner-text {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-self: center;
-  position: relative;
-  z-index: 1;
 }
 
 .form-success-banner-text h2 {
