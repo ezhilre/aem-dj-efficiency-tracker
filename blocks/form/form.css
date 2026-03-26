@@ -409,79 +409,186 @@
   font-size: 14px;
 }
 
+/* ================================================================
+   Rich Success View
+   ================================================================ */
+
 .form-success {
-  padding: 28px;
-  border-radius: 18px;
-  background: #f7fff9;
-  border: 1px solid #bbf7d0;
-  color: #14532d;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.10);
+  margin-top: 40px;
 }
 
-.form-success h2 {
-  margin: 0 0 12px;
-  font-size: 28px;
+/* Hero banner */
+.form-success-banner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 32px 32px 28px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0e4d2e 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.form-success-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 80% 50%, rgba(225, 37, 27, 0.18) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.form-success-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  min-width: 68px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.4);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.form-success-banner-text {
+  position: relative;
+  z-index: 1;
+}
+
+.form-success-banner-text h2 {
+  margin: 0 0 6px;
+  font-size: 22px;
   font-weight: 800;
-  color: #166534;
+  color: #ffffff;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
-.form-success p {
-  margin: 0 0 20px;
-  font-size: 16px;
-  color: #166534;
+.form-success-banner-text p {
+  margin: 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.5;
 }
 
+/* Detail grid */
 .form-success-details {
   display: grid;
-  gap: 10px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: #f1f5f9;
+  border-top: 1px solid #f1f5f9;
 }
 
 .form-success-row {
-  display: grid;
-  grid-template-columns: 160px 1fr;
-  gap: 12px;
-  padding: 12px 14px;
-  background: #ffffff;
-  border: 1px solid #dcfce7;
-  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 22px;
+  background: #fff;
+  transition: background-color 0.14s ease;
+}
+
+.form-success-row:hover {
+  background: #fafbfc;
 }
 
 .form-success-key {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
   font-weight: 700;
-  color: #14532d;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.form-success-key-icon {
+  display: flex;
+  align-items: center;
+  color: #e1251b;
+  flex-shrink: 0;
 }
 
 .form-success-value {
-  color: #14532d;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
   word-break: break-word;
+  line-height: 1.4;
+  padding-left: 23px;
 }
 
+/* Footer action */
 .form-success-add-another {
   display: flex;
   justify-content: flex-end;
-  margin-top: 20px;
+  align-items: center;
+  padding: 20px 24px;
+  background: #f9fafb;
+  border-top: 1px solid #f1f5f9;
 }
 
 .form-success-add-another-btn {
-  min-height: 54px;
-  padding: 14px 26px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 24px;
   border: none;
-  border-radius: 16px;
-  background: linear-gradient(180deg, #e1251b 0%, #c81d17 100%);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #e1251b 0%, #c81d17 100%);
   color: #fff;
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
-  box-shadow: 0 12px 24px rgba(225, 37, 27, 0.2);
+  box-shadow: 0 8px 20px rgba(225, 37, 27, 0.28);
+  letter-spacing: 0.01em;
 }
 
 .form-success-add-another-btn:hover {
-  filter: brightness(1.02);
-  transform: translateY(-1px);
+  filter: brightness(1.06);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(225, 37, 27, 0.34);
 }
 
 .form-success-add-another-btn:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
+  box-shadow: 0 4px 12px rgba(225, 37, 27, 0.2);
+}
+
+@media (max-width: 700px) {
+  .form-success-details {
+    grid-template-columns: 1fr;
+  }
+
+  .form-success-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px 20px;
+  }
+
+  .form-success-banner-text h2 {
+    font-size: 18px;
+  }
+
+  .form-success-add-another {
+    padding: 16px 20px;
+  }
+
+  .form-success-add-another-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 @media (max-width: 700px) {

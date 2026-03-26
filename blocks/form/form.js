@@ -1155,59 +1155,94 @@ export default function decorate(block) {
     const success = document.createElement('div');
     success.className = 'form-success';
 
+    /* ── Hero banner ── */
+    const banner = document.createElement('div');
+    banner.className = 'form-success-banner';
+
+    const iconWrap = document.createElement('div');
+    iconWrap.className = 'form-success-icon';
+    iconWrap.innerHTML = '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
+    const bannerText = document.createElement('div');
+    bannerText.className = 'form-success-banner-text';
+
     const title = document.createElement('h2');
     title.textContent = 'Weekly report captured successfully';
 
-    const summary = document.createElement('p');
     const project = data.project || 'your project';
     const hours = data['hours-saved'] || '0';
+    const summary = document.createElement('p');
     summary.textContent = `Your weekly report for ${project} was captured and logged ${hours} hours saved.`;
 
+    bannerText.appendChild(title);
+    bannerText.appendChild(summary);
+    banner.appendChild(iconWrap);
+    banner.appendChild(bannerText);
+
+    /* ── Detail grid ── */
     const details = document.createElement('div');
     details.className = 'form-success-details';
 
     const items = [
-      ['Email', data['email-address']],
-      ['LDAP', data.ldap],
-      ['Project', data.project],
-      ['From Date', data['from-date']],
-      ['To Date', data['to-date']],
-      ['Hours Saved', data['hours-saved']],
-      ['Accelerator Used', data['accelerator-used']],
+      ['Email', data['email-address'], 'person'],
+      ['LDAP', data.ldap, 'id'],
+      ['Project', data.project, 'folder'],
+      ['From Date', data['from-date'], 'calendar'],
+      ['To Date', data['to-date'], 'calendar'],
+      ['Hours Saved', data['hours-saved'], 'clock'],
+      ['Accelerator Used', data['accelerator-used'], 'bolt'],
     ];
 
-    items.forEach(([label, value]) => {
+    const icons = {
+      person: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+      id: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8L2 7"/></svg>',
+      folder: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
+      calendar: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+      clock: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+      bolt: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+    };
+
+    items.forEach(([label, value, iconKey]) => {
       const row = document.createElement('div');
       row.className = 'form-success-row';
 
-      const key = document.createElement('span');
-      key.className = 'form-success-key';
-      key.textContent = label;
+      const keyWrap = document.createElement('div');
+      keyWrap.className = 'form-success-key';
+
+      const iconEl = document.createElement('span');
+      iconEl.className = 'form-success-key-icon';
+      iconEl.innerHTML = icons[iconKey] || '';
+
+      const keyLabel = document.createElement('span');
+      keyLabel.textContent = label;
+
+      keyWrap.appendChild(iconEl);
+      keyWrap.appendChild(keyLabel);
 
       const val = document.createElement('span');
       val.className = 'form-success-value';
       val.textContent = value || '-';
 
-      row.appendChild(key);
+      row.appendChild(keyWrap);
       row.appendChild(val);
       details.appendChild(row);
     });
 
+    /* ── Footer action ── */
     const addAnotherWrap = document.createElement('div');
     addAnotherWrap.className = 'form-success-add-another';
 
     const addAnotherBtn = document.createElement('button');
     addAnotherBtn.type = 'button';
     addAnotherBtn.className = 'form-success-add-another-btn';
-    addAnotherBtn.textContent = 'Add Another Submission';
+    addAnotherBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Another Submission';
     addAnotherBtn.addEventListener('click', () => {
       window.location.reload();
     });
 
     addAnotherWrap.appendChild(addAnotherBtn);
 
-    success.appendChild(title);
-    success.appendChild(summary);
+    success.appendChild(banner);
     success.appendChild(details);
     success.appendChild(addAnotherWrap);
 
