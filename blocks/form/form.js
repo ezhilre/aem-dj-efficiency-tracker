@@ -1185,7 +1185,6 @@ export default function decorate(block) {
 
     const items = [
       ['Email', data['email-address'], 'person'],
-      ['LDAP', data.ldap, 'id'],
       ['Project', data.project, 'folder'],
       ['From Date', data['from-date'], 'calendar'],
       ['To Date', data['to-date'], 'calendar'],
