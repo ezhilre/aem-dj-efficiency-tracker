@@ -239,7 +239,7 @@
                   <td class="detail-value" valign="top"
                       style="padding:14px 20px;background-color:#ffffff;border-left:1px solid #f1f5f9;">
                     <span style="font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:600;color:#111827;">
-                      {{context.journey.events.1777827444._acssandboxgdcthree.accelaratorsUsed}}
+                      {{#each context.journey.events.1777827444._acssandboxgdcthree.accelaratorUsed as |acc|}}{{acc}}{{#unless @last}}, {{/unless}}{{/each}}
                     </span>
                   </td>
                 </tr>
