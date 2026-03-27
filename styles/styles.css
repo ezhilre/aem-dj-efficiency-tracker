@@ -359,9 +359,9 @@ main > .section:first-of-type {
 }
 
 
-/* Hero section: keep it tall, but not too tall */
+/* Hero section: compact Adobe-style header bar */
 main > .section:first-of-type {
-  min-height: 320px;
+  min-height: 72px;
   padding-bottom: 0;
 }
 
@@ -369,7 +369,7 @@ main > .section:first-of-type {
 main > .section:nth-of-type(2) {
   position: relative;
   z-index: 2;
-  margin-top: -110px;
+  margin-top: 0;
   padding-top: 0;
 }
 
