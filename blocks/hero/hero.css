@@ -7,11 +7,11 @@
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 48px;
+  justify-content: center;
   min-height: 160px;
   background-color: #e1251b;
   overflow: hidden;
+  padding: 0;
 }
 
 /* Hide any background image/picture if present */
@@ -21,6 +21,19 @@
 
 .hero img {
   display: none;
+}
+
+/* Inner content aligned to form card width */
+.hero-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 980px;
+  padding: 0 32px;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
 }
 
 /* Adobe logo + title layout */
@@ -39,6 +52,7 @@
   letter-spacing: 0.01em;
   white-space: nowrap;
   flex: 1;
+  text-align: center;
 }
 
 /* Adobe logo — transparent SVG, white mark + text, no background mismatch */
@@ -67,11 +81,18 @@
   line-height: 1.5;
   text-align: right;
   pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
-@media (width >= 900px) {
-  .hero {
-    padding: 0 48px;
-    min-height: 160px;
+@media (max-width: 700px) {
+  .hero-content {
+    padding: 0 20px;
+  }
+
+  .hero h1 {
+    font-size: 18px;
   }
 }
