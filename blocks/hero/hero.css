@@ -41,35 +41,30 @@
   flex: 1;
 }
 
-/* Adobe "A" mark box */
+/* Adobe SVG logo (white wordmark) */
 .hero::before {
-  content: 'A';
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
+  content: '';
+  display: block;
+  width: 120px;
   height: 44px;
-  min-width: 44px;
-  background-color: #ffffff;
-  border-radius: 4px;
-  color: #e1251b;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 26px;
-  font-weight: 900;
-  line-height: 1;
-  margin-right: 14px;
+  min-width: 120px;
+  margin-right: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 133 50'%3E%3Cpath fill='%23ffffff' d='M51.9 0h29.3v50L51.9 0zm-23.9 0H0v50L28 0zm12 18.2L48.5 50H38.1l-3-8.4H22.6l8.4-23.4z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: left center;
 }
 
-/* Decorative arrow pattern on the right */
+/* Decorative arrow pattern on the right — doubled rows */
 .hero::after {
-  content: '◀ ▲ ◀ ▲ ◀\A▲ ▶ ▲ ▶ ▲\A◀ ▲ ◀ ▲ ◀\A▲ ▶ ▲ ▶ ▲\A◀ ▲ ◀ ▲ ◀';
+  content: '◀ ▲ ◀ ▲ ◀ ▲ ◀ ▲ ◀ ▲\A▲ ▶ ▲ ▶ ▲ ▶ ▲ ▶ ▲ ▶\A◀ ▲ ◀ ▲ ◀ ▲ ◀ ▲ ◀ ▲\A▲ ▶ ▲ ▶ ▲ ▶ ▲ ▶ ▲ ▶\A◀ ▲ ◀ ▲ ◀ ▲ ◀ ▲ ◀ ▲\A▲ ▶ ▲ ▶ ▲ ▶ ▲ ▶ ▲ ▶\A◀ ▲ ◀ ▲ ◀ ▲ ◀ ▲ ◀ ▲\A▲ ▶ ▲ ▶ ▲ ▶ ▲ ▶ ▲ ▶\A◀ ▲ ◀ ▲ ◀ ▲ ◀ ▲ ◀ ▲\A▲ ▶ ▲ ▶ ▲ ▶ ▲ ▶ ▲ ▶';
   white-space: pre;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 13px;
+  font-size: 11px;
   color: #ffffff;
   opacity: 0.35;
-  letter-spacing: 4px;
-  line-height: 1.6;
+  letter-spacing: 3px;
+  line-height: 1.5;
   text-align: right;
   pointer-events: none;
 }

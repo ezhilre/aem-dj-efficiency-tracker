@@ -651,11 +651,11 @@
   }
 }
 
-/* Position the form below the hero with breathing room. */
+/* Move form up so it overlaps the hero by ~20% (160px * 20% = 32px). */
 .form {
   position: relative;
   z-index: 3;
-  margin-top: 40px !important;
+  margin-top: -32px !important;
 }
 
 /* Remove extra space inside the block */
