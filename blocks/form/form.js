@@ -1167,12 +1167,12 @@ export default function decorate(block) {
     bannerText.className = 'form-success-banner-text';
 
     const title = document.createElement('h2');
-    title.textContent = 'Weekly efficiency tracker captured successfully';
+    title.textContent = 'Weekly report captured successfully';
 
     const project = data.project || 'your project';
     const hours = data['hours-saved'] || '0';
     const summary = document.createElement('p');
-    summary.textContent = `Your weekly efficiency tracker for ${project} was captured and logged ${hours} hours saved.`;
+    summary.textContent = `Your weekly report for ${project} was captured and logged ${hours} hours saved.`;
 
     bannerText.appendChild(title);
     bannerText.appendChild(summary);
@@ -1475,54 +1475,5 @@ export default function decorate(block) {
     event.preventDefault();
   });
 
-  /* ── Adobe Hero Banner ── */
-  const heroBanner = document.createElement('div');
-  heroBanner.className = 'form-hero-banner';
-
-  const heroBannerInner = document.createElement('div');
-  heroBannerInner.className = 'form-hero-banner-inner';
-
-  /* Left: Adobe logo mark */
-  const logoGroup = document.createElement('div');
-  logoGroup.className = 'form-hero-logo-group';
-
-  const logoBox = document.createElement('div');
-  logoBox.className = 'form-hero-logo-box';
-  logoBox.setAttribute('aria-hidden', 'true');
-
-  const logoLetter = document.createElement('span');
-  logoLetter.className = 'form-hero-logo-letter';
-  logoLetter.textContent = 'A';
-
-  logoBox.appendChild(logoLetter);
-
-  const logoLabel = document.createElement('span');
-  logoLabel.className = 'form-hero-logo-label';
-  logoLabel.textContent = 'Adobe';
-
-  logoGroup.appendChild(logoBox);
-  logoGroup.appendChild(logoLabel);
-
-  /* Right: decorative arrow pattern */
-  const arrowPattern = document.createElement('div');
-  arrowPattern.className = 'form-hero-arrows';
-  arrowPattern.setAttribute('aria-hidden', 'true');
-  arrowPattern.innerHTML = [
-    '&#9664;&nbsp;&#9650;&nbsp;&#9664;&nbsp;&#9650;&nbsp;&#9664;',
-    '&#9650;&nbsp;&#9654;&nbsp;&#9650;&nbsp;&#9654;&nbsp;&#9650;',
-    '&#9664;&nbsp;&#9650;&nbsp;&#9664;&nbsp;&#9650;&nbsp;&#9664;',
-    '&#9650;&nbsp;&#9654;&nbsp;&#9650;&nbsp;&#9654;&nbsp;&#9650;',
-    '&#9664;&nbsp;&#9650;&nbsp;&#9664;&nbsp;&#9650;&nbsp;&#9664;',
-  ].join('<br>');
-
-  heroBannerInner.appendChild(logoGroup);
-  heroBannerInner.appendChild(arrowPattern);
-  heroBanner.appendChild(heroBannerInner);
-
-  const container = document.createElement('div');
-  container.className = 'form-with-banner';
-  container.appendChild(heroBanner);
-  container.appendChild(form);
-
-  block.replaceChildren(container);
+  block.replaceChildren(form);
 }
