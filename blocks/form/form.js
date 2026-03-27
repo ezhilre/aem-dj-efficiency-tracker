@@ -1270,6 +1270,9 @@ export default function decorate(block) {
       ldap: data['ldap'] || '',
       projectName: data['project'] || '',
       toDate: data['to-date'] || '',
+      weekNumber: week,
+      weekRange,
+      weekYear: year,
       event: 'card.submitted',
     };
 
@@ -1307,24 +1310,8 @@ export default function decorate(block) {
   const { week, year } = getISOWeek(now);
   const weekRange = getWeekRange(now);
 
-  const weekBanner = document.createElement('div');
-  weekBanner.className = 'form-week-banner';
-  weekBanner.innerHTML = `
-    <span class="form-week-icon">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-        <line x1="16" y1="2" x2="16" y2="6"/>
-        <line x1="8" y1="2" x2="8" y2="6"/>
-        <line x1="3" y1="10" x2="21" y2="10"/>
-      </svg>
-    </span>
-    <span class="form-week-label">Submitting for</span>
-    <span class="form-week-num">Week ${week}</span>
-    <span class="form-week-sep">·</span>
-    <span class="form-week-range">${weekRange}</span>
-    <span class="form-week-year">${year}</span>
-  `;
-  form.appendChild(weekBanner);
+  /* Week banner is intentionally not rendered in the UI —
+     weekNumber / weekRange are sent silently in the datalayer payload. */
 
   rows.forEach((row) => {
     const labelText = row.children[0]?.textContent.trim();
