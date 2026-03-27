@@ -426,6 +426,8 @@
 .form-success-banner {
   position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: center;
   min-height: 112px;
   padding: 24px 32px 24px 124px;
   background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0e4d2e 100%);
@@ -463,6 +465,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  flex: 1;
 }
 
 .form-success-banner-text h2 {
