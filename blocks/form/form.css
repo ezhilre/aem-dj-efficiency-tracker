@@ -651,11 +651,11 @@
   }
 }
 
-/* Move form up so it overlaps the hero by ~20% (160px * 20% = 32px). */
+/* Move form up so it overlaps the hero by ~35% (160px * 35% = 56px). */
 .form {
   position: relative;
   z-index: 3;
-  margin-top: -32px !important;
+  margin-top: -56px !important;
 }
 
 /* Remove extra space inside the block */

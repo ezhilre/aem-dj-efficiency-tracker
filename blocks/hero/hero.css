@@ -41,15 +41,15 @@
   flex: 1;
 }
 
-/* Adobe SVG logo (white wordmark) */
+/* Adobe stacked logo: "A" mark + "Adobe" text */
 .hero::before {
   content: '';
   display: block;
-  width: 120px;
-  height: 44px;
-  min-width: 120px;
-  margin-right: 20px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 133 50'%3E%3Cpath fill='%23ffffff' d='M51.9 0h29.3v50L51.9 0zm-23.9 0H0v50L28 0zm12 18.2L48.5 50H38.1l-3-8.4H22.6l8.4-23.4z'/%3E%3C/svg%3E");
+  width: 80px;
+  height: 80px;
+  min-width: 80px;
+  margin-right: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 280'%3E%3Crect width='240' height='240' rx='4' fill='%23e1251b'/%3E%3Cpath fill='%23ffffff' d='M186 200h-21.5l-10.5-28H86l-10.5 28H54L120 40zm-55-48l-11-29.5L109 152z'/%3E%3Ctext x='120' y='272' font-family='Arial,Helvetica,sans-serif' font-size='56' font-weight='700' fill='%23ffffff' text-anchor='middle'%3EAdobe%3C/text%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-size: contain;
   background-position: left center;
