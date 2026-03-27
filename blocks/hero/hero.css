@@ -41,7 +41,7 @@
   flex: 1;
 }
 
-/* Adobe logo from icons/adobeLogo.png — screen blend removes red mismatch */
+/* Adobe logo — transparent SVG, white mark + text, no background mismatch */
 .hero::before {
   content: '';
   display: block;
@@ -49,11 +49,10 @@
   height: 62px;
   min-width: 180px;
   margin-right: 24px;
-  background-image: url('/icons/adobeLogo.png');
+  background-image: url('/icons/adobeLogo.svg');
   background-repeat: no-repeat;
   background-size: contain;
   background-position: left center;
-  mix-blend-mode: screen;
 }
 
 /* Decorative arrow pattern on the right — doubled rows */
