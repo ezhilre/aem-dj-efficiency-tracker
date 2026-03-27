@@ -1,22 +1,35 @@
 /* ================================================================
-   Adobe Hero Banner – full-bleed top strip inside the form card
+   Adobe Hero Banner – top of the form card
    ================================================================ */
 
-/* The banner is the first child of .weekly-report-form.
-   Negative margin + negative padding offset escape the form's own padding
-   so the banner sits flush against the card edges. */
+.form-with-banner {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+/* Override the form's own max-width / margin when wrapped */
+.form-with-banner .weekly-report-form {
+  max-width: 100%;
+  margin: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
 .form-hero-banner {
+  background-color: #e1251b;
+  border-radius: 24px 24px 0 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+.form-hero-banner-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #e1251b;
-  /* pull left/right/top to break out of the form's 32px padding */
-  margin: -8px -32px 8px -32px;
   padding: 18px 28px;
-  border-radius: 24px 24px 0 0;
 }
 
-/* Left: logo group (column: box on top, label beneath) */
+/* Left: logo group */
 .form-hero-logo-group {
   display: flex;
   flex-direction: column;
@@ -67,8 +80,7 @@
 }
 
 @media (max-width: 700px) {
-  .form-hero-banner {
-    margin: -20px -20px 12px -20px;
+  .form-hero-banner-inner {
     padding: 14px 20px;
   }
 

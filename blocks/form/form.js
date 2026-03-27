@@ -1475,21 +1475,25 @@ export default function decorate(block) {
     event.preventDefault();
   });
 
-  /* ── Adobe Hero Banner (inside the form card, full-bleed top strip) ── */
+  /* ── Adobe Hero Banner ── */
   const heroBanner = document.createElement('div');
   heroBanner.className = 'form-hero-banner';
 
-  /* Left: Adobe logo mark + label */
+  const heroBannerInner = document.createElement('div');
+  heroBannerInner.className = 'form-hero-banner-inner';
+
+  /* Left: Adobe logo mark */
   const logoGroup = document.createElement('div');
   logoGroup.className = 'form-hero-logo-group';
-  logoGroup.setAttribute('aria-hidden', 'true');
 
   const logoBox = document.createElement('div');
   logoBox.className = 'form-hero-logo-box';
+  logoBox.setAttribute('aria-hidden', 'true');
 
   const logoLetter = document.createElement('span');
   logoLetter.className = 'form-hero-logo-letter';
   logoLetter.textContent = 'A';
+
   logoBox.appendChild(logoLetter);
 
   const logoLabel = document.createElement('span');
@@ -1511,11 +1515,14 @@ export default function decorate(block) {
     '&#9664;&nbsp;&#9650;&nbsp;&#9664;&nbsp;&#9650;&nbsp;&#9664;',
   ].join('<br>');
 
-  heroBanner.appendChild(logoGroup);
-  heroBanner.appendChild(arrowPattern);
+  heroBannerInner.appendChild(logoGroup);
+  heroBannerInner.appendChild(arrowPattern);
+  heroBanner.appendChild(heroBannerInner);
 
-  /* Prepend the banner as the very first child of the form */
-  form.insertBefore(heroBanner, form.firstChild);
+  const container = document.createElement('div');
+  container.className = 'form-with-banner';
+  container.appendChild(heroBanner);
+  container.appendChild(form);
 
-  block.replaceChildren(form);
+  block.replaceChildren(container);
 }
