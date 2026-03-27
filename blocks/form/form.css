@@ -651,11 +651,11 @@
   }
 }
 
-/* Pull the whole form block upward. */
+/* Position the form below the hero with breathing room. */
 .form {
   position: relative;
   z-index: 3;
-  margin-top: -220px !important;
+  margin-top: 40px !important;
 }
 
 /* Remove extra space inside the block */
@@ -671,9 +671,9 @@ main > .section {
   padding-top: 0;
 }
 
-/* Reduce the hero bottom gap so the form can overlap it */
+/* Hero section bottom padding */
 main > .section:first-of-type {
-  padding-bottom: 50px !important;
+  padding-bottom: 0 !important;
 }
 
 
