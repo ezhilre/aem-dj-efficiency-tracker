@@ -359,17 +359,17 @@ main > .section:first-of-type {
 }
 
 
-/* Hero section: compact Adobe-style header bar */
+/* Hero section: Adobe-style header bar */
 main > .section:first-of-type {
-  min-height: 72px;
+  min-height: 120px;
   padding-bottom: 0;
 }
 
-/* Move the form section upward so it overlaps the hero */
+/* Move the form section down with breathing room below hero */
 main > .section:nth-of-type(2) {
   position: relative;
   z-index: 2;
-  margin-top: 0;
+  margin-top: 32px !important;
   padding-top: 0;
 }
 
