@@ -92,6 +92,56 @@ label[for="accelerator-used-search"]::before {
   background-position: center;
 }
 
+/* ── Week indicator banner ──────────────────────────────────── */
+.form-week-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #fff5f5 0%, #fff0ef 100%);
+  border: 1px solid #fac9c6;
+  border-radius: 12px;
+  font-size: 14px;
+  flex-wrap: wrap;
+}
+
+.form-week-icon {
+  display: flex;
+  align-items: center;
+  color: #e1251b;
+  flex-shrink: 0;
+}
+
+.form-week-label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.form-week-num {
+  color: #e1251b;
+  font-weight: 800;
+  font-size: 15px;
+  background: #fdecea;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid #fac9c6;
+}
+
+.form-week-sep {
+  color: #d1d5db;
+  font-size: 16px;
+}
+
+.form-week-range {
+  color: #374151;
+  font-weight: 600;
+}
+
+.form-week-year {
+  color: #9ca3af;
+  font-weight: 500;
+}
+
 .form-control-wrap {
   display: flex;
   flex-direction: column;

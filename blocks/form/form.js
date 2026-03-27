@@ -1282,6 +1282,50 @@ export default function decorate(block) {
     block.replaceChildren(renderSuccessView(data));
   };
 
+  /* ── Week indicator banner ──────────────────────────────────── */
+  const getISOWeek = (d) => {
+    const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    const dayOfWeek = date.getUTCDay() || 7; // ISO: Mon=1 … Sun=7
+    date.setUTCDate(date.getUTCDate() + 4 - dayOfWeek); // nearest Thursday
+    const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+    const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+    return { week: weekNo, year: date.getUTCFullYear() };
+  };
+
+  const getWeekRange = (d) => {
+    const date = new Date(d);
+    const day = date.getDay() || 7; // Mon=1
+    const mon = new Date(date);
+    mon.setDate(date.getDate() - (day - 1));
+    const sun = new Date(mon);
+    sun.setDate(mon.getDate() + 6);
+    const fmt = (dt) => dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return `${fmt(mon)} – ${fmt(sun)}`;
+  };
+
+  const now = new Date();
+  const { week, year } = getISOWeek(now);
+  const weekRange = getWeekRange(now);
+
+  const weekBanner = document.createElement('div');
+  weekBanner.className = 'form-week-banner';
+  weekBanner.innerHTML = `
+    <span class="form-week-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+    </span>
+    <span class="form-week-label">Submitting for</span>
+    <span class="form-week-num">Week ${week}</span>
+    <span class="form-week-sep">·</span>
+    <span class="form-week-range">${weekRange}</span>
+    <span class="form-week-year">${year}</span>
+  `;
+  form.appendChild(weekBanner);
+
   rows.forEach((row) => {
     const labelText = row.children[0]?.textContent.trim();
     const valueEl = row.children[1];
