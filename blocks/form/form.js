@@ -1268,7 +1268,7 @@ export default function decorate(block) {
 
     const payload = {
       accelaratorsUsed: isPto ? '' : (data['accelerator-used'] || ''),
-      emailAddress: isPto ? '' : (data['email-address'] || ''),
+      emailAddress: data['email-address'] || '',
       fromDate: data['from-date'] || '',
       hoursSaved: isPto ? 0 : Number(data['hours-saved'] || 0),
       ldap: isPto ? '' : (data['ldap'] || ''),
@@ -1522,12 +1522,12 @@ export default function decorate(block) {
   ptoWrap.appendChild(ptoCustomBox);
   ptoWrap.appendChild(ptoText);
 
-  /* The "date" kind fields (hidden inputs behind the CDP pickers) */
-  const dateKinds = ['date'];
+  /* Fields that stay enabled even when PTO mode is active */
+  const ptoEnabledKinds = ['date', 'email'];
 
   const applyPtoMode = (active) => {
     state.fields.forEach((item) => {
-      const isDate = dateKinds.includes(item.kind);
+      const isDate = ptoEnabledKinds.includes(item.kind);
       if (active && !isDate) {
         /* Disable non-date fields */
         item.field.disabled = true;
