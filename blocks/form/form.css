@@ -142,6 +142,94 @@ label[for="accelerator-used-search"]::before {
   font-weight: 500;
 }
 
+/* ── PTO checkbox row ──────────────────────────────────────── */
+.form-pto-row {
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #fff8f0 0%, #fff3e8 100%);
+  border: 1.5px solid #fcd9b0;
+  border-radius: 14px;
+}
+
+.form-pto-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.form-pto-checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.form-pto-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border: 2px solid #d97706;
+  border-radius: 5px;
+  background: #fff;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  flex-shrink: 0;
+}
+
+.form-pto-checkbox:checked + .form-pto-box {
+  background: #d97706;
+  border-color: #d97706;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+}
+
+.form-pto-checkbox:checked + .form-pto-box::after {
+  content: '';
+  display: block;
+  width: 5px;
+  height: 10px;
+  border: 2.5px solid #fff;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg) translateY(-1px);
+}
+
+.form-pto-checkbox:focus-visible + .form-pto-box {
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.25);
+}
+
+.form-pto-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #92400e;
+  line-height: 1.4;
+}
+
+/* Disabled field overlay when PTO is active */
+.form-row--pto-disabled {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.38;
+}
+
+.form-row--pto-disabled::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 6px,
+    rgba(200, 200, 200, 0.15) 6px,
+    rgba(200, 200, 200, 0.15) 8px
+  );
+  border-radius: 12px;
+  pointer-events: none;
+}
+
 .form-control-wrap {
   display: flex;
   flex-direction: column;

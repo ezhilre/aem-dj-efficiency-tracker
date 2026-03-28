@@ -429,6 +429,8 @@ export default function decorate(block) {
   const validateAll = () => {
     const errors = [];
     state.fields.forEach((item) => {
+      /* Skip disabled fields (e.g. when PTO mode is active) */
+      if (item.field.disabled) return;
       const message = validateField(item);
       if (message) errors.push({ ...item, message });
     });
@@ -1262,14 +1264,17 @@ export default function decorate(block) {
 
     const data = Object.fromEntries(new FormData(form).entries());
 
+    const isPto = typeof ptoCheckbox !== 'undefined' && ptoCheckbox.checked;
+
     const payload = {
-      accelaratorsUsed: data['accelerator-used'] || '',
-      emailAddress: data['email-address'] || '',
+      accelaratorsUsed: isPto ? '' : (data['accelerator-used'] || ''),
+      emailAddress: isPto ? '' : (data['email-address'] || ''),
       fromDate: data['from-date'] || '',
-      hoursSaved: Number(data['hours-saved'] || 0),
-      ldap: data['ldap'] || '',
-      projectName: data['project'] || '',
+      hoursSaved: isPto ? 0 : Number(data['hours-saved'] || 0),
+      ldap: isPto ? '' : (data['ldap'] || ''),
+      projectName: isPto ? '' : (data['project'] || ''),
       toDate: data['to-date'] || '',
+      pto: isPto,
       weekNumber: week,
       weekRange,
       weekYear: year,
@@ -1495,11 +1500,76 @@ export default function decorate(block) {
     pendingHoursRow = null;
   }
 
+  /* ── PTO checkbox ─────────────────────────────────────────── */
+  const ptoWrap = document.createElement('label');
+  ptoWrap.className = 'form-pto-label';
+
+  const ptoCheckbox = document.createElement('input');
+  ptoCheckbox.type = 'checkbox';
+  ptoCheckbox.className = 'form-pto-checkbox';
+  ptoCheckbox.id = 'pto-full-week';
+
+  const ptoCustomBox = document.createElement('span');
+  ptoCustomBox.className = 'form-pto-box';
+  ptoCustomBox.setAttribute('aria-hidden', 'true');
+
+  const ptoText = document.createElement('span');
+  ptoText.className = 'form-pto-text';
+  ptoText.textContent = 'Check this box to apply PTO for the full week';
+
+  ptoWrap.setAttribute('for', 'pto-full-week');
+  ptoWrap.appendChild(ptoCheckbox);
+  ptoWrap.appendChild(ptoCustomBox);
+  ptoWrap.appendChild(ptoText);
+
+  /* The "date" kind fields (hidden inputs behind the CDP pickers) */
+  const dateKinds = ['date'];
+
+  const applyPtoMode = (active) => {
+    state.fields.forEach((item) => {
+      const isDate = dateKinds.includes(item.kind);
+      if (active && !isDate) {
+        /* Disable non-date fields */
+        item.field.disabled = true;
+        item.field.closest('.form-row, .form-row-pair, .form-row-au, .form-row-searchable')
+          ?.classList.toggle('form-row--pto-disabled', true);
+      } else {
+        item.field.disabled = false;
+        item.field.closest('.form-row, .form-row-pair, .form-row-au, .form-row-searchable')
+          ?.classList.toggle('form-row--pto-disabled', false);
+      }
+    });
+
+    /* Also visually disable the cdp-display buttons for non-date pickers
+       (there are none, but guard for future fields) */
+    form.querySelectorAll('.cdp-display').forEach((el) => {
+      /* from-date and to-date pickers should remain enabled */
+      const wrap = el.closest('.form-date-field');
+      const lbl = wrap?.querySelector('label')?.textContent?.trim() || '';
+      const isDateField = lbl === 'From Date' || lbl === 'To Date';
+      if (!isDateField) {
+        el.style.pointerEvents = active ? 'none' : '';
+        el.style.opacity = active ? '0.4' : '';
+      }
+    });
+  };
+
+  ptoCheckbox.addEventListener('change', () => {
+    applyPtoMode(ptoCheckbox.checked);
+  });
+
+  const ptoRowWrap = document.createElement('div');
+  ptoRowWrap.className = 'form-row form-pto-row';
+  ptoRowWrap.appendChild(ptoWrap);
+
   if (state.submitButton) {
     const submitWrap = document.createElement('div');
     submitWrap.className = 'form-row form-row-submit';
     submitWrap.appendChild(state.submitButton);
+    form.appendChild(ptoRowWrap);
     form.appendChild(submitWrap);
+  } else {
+    form.appendChild(ptoRowWrap);
   }
 
   form.addEventListener('submit', (event) => {
