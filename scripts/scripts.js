@@ -17,7 +17,7 @@ import {
  * @param {Element} main The container element
  */
 function buildHeroBlock(main) {
-  console.log('🔵 buildHeroBlock or Hero called with main:', main.innerHTML);
+  //console.log('🔵 buildHeroBlock or Hero called with main:', main.innerHTML);
   const h1 = main.querySelector('h1');
   const picture = main.querySelector('picture');
   // eslint-disable-next-line no-bitwise
