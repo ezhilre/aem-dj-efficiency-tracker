@@ -26,6 +26,11 @@ function buildHeroBlock(main) {
     if (h1.closest('.hero') || picture.closest('.hero')) {
       return; // Don't create a duplicate hero block
     }
+    /* Ensure hero image has descriptive alt text for SEO */
+    const img = picture.querySelector('img');
+    if (img && !img.alt) {
+      img.alt = h1.textContent.trim() || 'Hero image';
+    }
     const section = document.createElement('div');
     section.append(buildBlock('hero', { elems: [picture, h1] }));
     main.prepend(section);
