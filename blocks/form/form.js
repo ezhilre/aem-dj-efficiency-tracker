@@ -107,6 +107,8 @@ export default function decorate(block) {
     displayInput.setAttribute('role', 'button');
     displayInput.setAttribute('tabindex', '0');
     displayInput.setAttribute('aria-label', 'Pick a date');
+    displayInput.setAttribute('aria-haspopup', 'dialog');
+    displayInput.setAttribute('aria-expanded', 'false');
     displayInput.setAttribute('id', id);
 
     const displayText = document.createElement('span');
@@ -321,12 +323,14 @@ export default function decorate(block) {
       renderCalendar();
       popup.hidden = false;
       displayInput.classList.add('cdp-display--open');
+      displayInput.setAttribute('aria-expanded', 'true');
     };
 
     const closePicker = () => {
       isOpen = false;
       popup.hidden = true;
       displayInput.classList.remove('cdp-display--open');
+      displayInput.setAttribute('aria-expanded', 'false');
     };
 
     displayInput.addEventListener('click', (e) => {
@@ -455,12 +459,15 @@ export default function decorate(block) {
     input.placeholder = 'Search and select email';
     input.autocomplete = 'off';
     input.required = true;
+    input.setAttribute('role', 'combobox');
     input.setAttribute('aria-autocomplete', 'list');
     input.setAttribute('aria-expanded', 'false');
     input.setAttribute('aria-haspopup', 'listbox');
+    input.setAttribute('aria-controls', `${name}-menu`);
 
     const menu = document.createElement('div');
     menu.className = 'searchable-select-menu';
+    menu.id = `${name}-menu`;
     menu.hidden = true;
     menu.setAttribute('role', 'listbox');
 
