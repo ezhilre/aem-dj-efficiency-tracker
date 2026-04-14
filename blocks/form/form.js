@@ -1258,6 +1258,17 @@ export default function decorate(block) {
     return success;
   };
 
+  /* ── 40-hr cap validation (called from validateAll path) ──── */
+  const validateHoursCap = () => {
+    const totalField = form.querySelector('#hours-saved');
+    if (!totalField || totalField.disabled) return '';
+    const val = parseFloat(totalField.value);
+    if (!Number.isNaN(val) && val > 40) {
+      return `Total hours saved cannot exceed 40 hrs (currently ${Math.round(val * 100) / 100} hrs).`;
+    }
+    return '';
+  };
+
   const showConfirmationDialog = (onProceed) => {
     const overlay = document.createElement('div');
     overlay.className = 'form-confirm-overlay';
@@ -1271,6 +1282,14 @@ export default function decorate(block) {
     const iconWrap = document.createElement('div');
     iconWrap.className = 'form-confirm-icon';
     iconWrap.innerHTML = '<svg width="36" height="36" viewBox="0 0 48 56" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="8" width="40" height="44" rx="4" ry="4" stroke="currentColor" stroke-width="2.5" fill="none"/><rect x="16" y="4" width="16" height="8" rx="3" ry="3" stroke="currentColor" stroke-width="2.5" fill="none"/><circle cx="24" cy="26" r="9" stroke="currentColor" stroke-width="2.5" fill="none"/><line x1="24" y1="21" x2="24" y2="26" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><line x1="24" y1="26" x2="28" y2="29" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><polyline points="10,43 14,47 22,39" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="28" y1="43" x2="38" y2="43" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="28" y1="47" x2="34" y2="47" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+
+    /* ── Total hours badge ── */
+    const totalHoursField = form.querySelector('#hours-saved');
+    const totalHoursVal = totalHoursField ? (parseFloat(totalHoursField.value) || 0) : 0;
+
+    const hoursBadge = document.createElement('div');
+    hoursBadge.className = 'form-confirm-hours-badge';
+    hoursBadge.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> You are submitting <strong>${Math.round(totalHoursVal * 100) / 100} hrs</strong> saved this week`;
 
     const message = document.createElement('p');
     message.id = 'form-confirm-desc';
@@ -1313,6 +1332,7 @@ export default function decorate(block) {
     btnRow.appendChild(cancelBtn);
     dialog.appendChild(iconWrap);
     dialog.appendChild(message);
+    dialog.appendChild(hoursBadge);
     dialog.appendChild(btnRow);
     overlay.appendChild(dialog);
     document.body.appendChild(overlay);
@@ -1363,6 +1383,23 @@ export default function decorate(block) {
 
   const handleSubmit = () => {
     const errors = validateAll();
+
+    /* Check 40-hr cap separately (covers the accel-hours error) */
+    const hoursCapError = validateHoursCap();
+    if (hoursCapError) {
+      const totalField = form.querySelector('#hours-saved');
+      if (totalField) {
+        totalField.focus();
+        totalField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      /* Also surface the visible error banner under the accel group card */
+      const banner = form.querySelector('.accel-total-error');
+      if (banner) {
+        banner.textContent = hoursCapError;
+        banner.hidden = false;
+      }
+      return;
+    }
 
     if (errors.length) {
       const firstInvalid = errors[0]?.field;
@@ -1529,13 +1566,24 @@ export default function decorate(block) {
     }
 
     if (labelText === 'Accelerator Used') {
-      /* Container for per-accelerator hour inputs — inserted right after the selector */
+      /* ── Outer grouped card that wraps selector + per-accelerator hours ── */
+      const accelGroupCard = document.createElement('div');
+      accelGroupCard.className = 'form-row accel-group-card';
+
+      /* Container for per-accelerator hour inputs */
       const accelHoursContainer = document.createElement('div');
-      accelHoursContainer.className = 'form-row accel-hours-container';
+      accelHoursContainer.className = 'accel-hours-container';
       accelHoursContainer.hidden = true;
+
+      /* Total-hours error element (lives inside the card) */
+      const totalErrorEl = document.createElement('div');
+      totalErrorEl.className = 'field-error accel-total-error';
+      totalErrorEl.hidden = true;
 
       /* Map to persist entered values across re-renders: acceleratorName → hours string */
       const accelHoursValues = new Map();
+
+      const MAX_HOURS = 40;
 
       const recalcTotal = () => {
         const totalField = form.querySelector('#hours-saved');
@@ -1545,17 +1593,28 @@ export default function decorate(block) {
           const val = parseFloat(inp.value);
           if (!Number.isNaN(val) && val > 0) sum += val;
         });
-        totalField.value = sum > 0 ? String(Math.round(sum * 100) / 100) : '';
+        const rounded = Math.round(sum * 100) / 100;
+        totalField.value = rounded > 0 ? String(rounded) : '';
         totalField.dispatchEvent(new Event('change', { bubbles: true }));
+
+        /* Validate 40-hr cap */
+        if (rounded > MAX_HOURS) {
+          totalErrorEl.textContent = `Total hours saved cannot exceed ${MAX_HOURS} hrs (currently ${rounded} hrs).`;
+          totalErrorEl.hidden = false;
+          totalField.classList.add('is-invalid');
+        } else {
+          totalErrorEl.hidden = true;
+          totalField.classList.remove('is-invalid');
+        }
       };
 
       const renderAcceleratorHours = (selectedSet) => {
         accelHoursContainer.replaceChildren();
         if (!selectedSet || selectedSet.size === 0) {
           accelHoursContainer.hidden = true;
-          /* Reset total */
+          totalErrorEl.hidden = true;
           const totalField = form.querySelector('#hours-saved');
-          if (totalField) totalField.value = '';
+          if (totalField) { totalField.value = ''; totalField.classList.remove('is-invalid'); }
           return;
         }
 
@@ -1607,7 +1666,7 @@ export default function decorate(block) {
         recalcTotal();
       };
 
-      form.appendChild(
+      accelGroupCard.appendChild(
         createHierarchicalAcceleratorSelect({
           labelText,
           name: 'accelerator-used',
@@ -1617,7 +1676,9 @@ export default function decorate(block) {
           },
         }),
       );
-      form.appendChild(accelHoursContainer);
+      accelGroupCard.appendChild(accelHoursContainer);
+      accelGroupCard.appendChild(totalErrorEl);
+      form.appendChild(accelGroupCard);
       return;
     }
 

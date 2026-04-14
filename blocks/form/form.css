@@ -1944,6 +1944,72 @@ main > .section:first-of-type {
 }
 
 /* ================================================================
+   Accelerator Group Card (wraps selector + hours panel)
+   ================================================================ */
+
+.accel-group-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 20px;
+  border: 1.5px solid #d9e2ee;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+  box-shadow: 0 16px 42px rgba(15, 23, 42, 0.06);
+}
+
+/* Remove the inner shell's own border/shadow when it lives inside the card */
+.accel-group-card .au-shell {
+  box-shadow: none;
+  border: none;
+  padding: 0;
+}
+
+/* Divider between the selector and the hours panel */
+.accel-group-card .accel-hours-container {
+  margin-top: 16px;
+  border-radius: 12px;
+}
+
+/* Error that lives at the bottom of the card */
+.accel-group-card .accel-total-error {
+  margin-top: 8px;
+}
+
+/* ================================================================
+   Confirmation dialog — hours badge
+   ================================================================ */
+
+.form-confirm-hours-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fff5f5 0%, #fdecea 100%);
+  border: 1.5px solid #fac9c6;
+  color: #b91c1c;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  justify-content: center;
+}
+
+.form-confirm-hours-badge strong {
+  font-size: 16px;
+  font-weight: 800;
+  color: #e1251b;
+}
+
+.form-confirm-hours-badge svg {
+  flex-shrink: 0;
+  color: #e1251b;
+}
+
+/* ================================================================
    Per-Accelerator Hours Panel
    ================================================================ */
 
