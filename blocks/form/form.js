@@ -1269,7 +1269,7 @@ export default function decorate(block) {
 
     const iconWrap = document.createElement('div');
     iconWrap.className = 'form-confirm-icon';
-    iconWrap.innerHTML = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+    iconWrap.innerHTML = '<svg width="36" height="36" viewBox="0 0 48 56" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="8" width="40" height="44" rx="4" ry="4" stroke="currentColor" stroke-width="2.5" fill="none"/><rect x="16" y="4" width="16" height="8" rx="3" ry="3" stroke="currentColor" stroke-width="2.5" fill="none"/><circle cx="24" cy="26" r="9" stroke="currentColor" stroke-width="2.5" fill="none"/><line x1="24" y1="21" x2="24" y2="26" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><line x1="24" y1="26" x2="28" y2="29" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><polyline points="10,43 14,47 22,39" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="28" y1="43" x2="38" y2="43" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="28" y1="47" x2="34" y2="47" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 
     const message = document.createElement('p');
     message.id = 'form-confirm-desc';
