@@ -646,7 +646,7 @@ export default function decorate(block) {
    * @param {string} name       - input name / id
    * @param {Element} contentEl - the authored DOM element containing <p> + <ul>s
    */
-  const createHierarchicalAcceleratorSelect = ({ labelText, name, contentEl: domEl }) => {
+  const createHierarchicalAcceleratorSelect = ({ labelText, name, contentEl: domEl, onSelectionChange }) => {
     /* ── 1. Parse authored DOM into tree ────────────────────────── */
     const parseList = (ul) => {
       if (!ul) return [];
@@ -1074,6 +1074,7 @@ export default function decorate(block) {
       syncHidden();
       renderChips();
       renderPanel();
+      if (typeof onSelectionChange === 'function') onSelectionChange(new Set(auSelected));
     };
 
     /* ── 5. Open / Close ────────────────────────────────────────── */
@@ -1324,8 +1325,20 @@ export default function decorate(block) {
 
     const isPto = typeof ptoCheckbox !== 'undefined' && ptoCheckbox.checked;
 
+    /* Build per-accelerator hours breakdown from the granular inputs */
+    const accelHoursBreakdown = {};
+    form.querySelectorAll('.accel-hours-item').forEach((item) => {
+      const labelEl = item.querySelector('.accel-hours-item__label');
+      const inputEl = item.querySelector('.accel-hours-input');
+      if (labelEl && inputEl) {
+        const hrs = parseFloat(inputEl.value);
+        accelHoursBreakdown[labelEl.textContent.trim()] = Number.isNaN(hrs) ? 0 : hrs;
+      }
+    });
+
     const payload = {
       accelaratorsUsed: isPto ? '' : (data['accelerator-used'] || ''),
+      acceleratorHoursBreakdown: isPto ? {} : accelHoursBreakdown,
       emailAddress: data['email-address'] || '',
       fromDate: data['from-date'] || '',
       hoursSaved: isPto ? 0 : Number(data['hours-saved'] || 0),
@@ -1484,14 +1497,16 @@ export default function decorate(block) {
     }
 
     if (labelText === 'Hours Saved') {
+      /* Total is auto-calculated — rendered as read-only display */
       field = document.createElement('input');
       field.type = 'number';
       field.step = '0.1';
       field.min = '0';
       field.name = 'hours-saved';
       field.id = field.name;
-      field.placeholder = 'Enter hours saved';
-      field.required = true;
+      field.placeholder = '0';
+      field.readOnly = true;
+      field.className = 'hours-saved-total';
 
       registerField({
         label: labelText,
@@ -1514,13 +1529,95 @@ export default function decorate(block) {
     }
 
     if (labelText === 'Accelerator Used') {
+      /* Container for per-accelerator hour inputs — inserted right after the selector */
+      const accelHoursContainer = document.createElement('div');
+      accelHoursContainer.className = 'form-row accel-hours-container';
+      accelHoursContainer.hidden = true;
+
+      /* Map to persist entered values across re-renders: acceleratorName → hours string */
+      const accelHoursValues = new Map();
+
+      const recalcTotal = () => {
+        const totalField = form.querySelector('#hours-saved');
+        if (!totalField) return;
+        let sum = 0;
+        accelHoursContainer.querySelectorAll('.accel-hours-input').forEach((inp) => {
+          const val = parseFloat(inp.value);
+          if (!Number.isNaN(val) && val > 0) sum += val;
+        });
+        totalField.value = sum > 0 ? String(Math.round(sum * 100) / 100) : '';
+        totalField.dispatchEvent(new Event('change', { bubbles: true }));
+      };
+
+      const renderAcceleratorHours = (selectedSet) => {
+        accelHoursContainer.replaceChildren();
+        if (!selectedSet || selectedSet.size === 0) {
+          accelHoursContainer.hidden = true;
+          /* Reset total */
+          const totalField = form.querySelector('#hours-saved');
+          if (totalField) totalField.value = '';
+          return;
+        }
+
+        accelHoursContainer.hidden = false;
+
+        const heading = document.createElement('div');
+        heading.className = 'accel-hours-heading';
+        heading.textContent = 'Hours saved per accelerator';
+        accelHoursContainer.appendChild(heading);
+
+        const grid = document.createElement('div');
+        grid.className = 'accel-hours-grid';
+
+        [...selectedSet].forEach((accName) => {
+          const itemWrap = document.createElement('div');
+          itemWrap.className = 'accel-hours-item';
+
+          const lbl = document.createElement('label');
+          const safeId = `accel-hrs-${accName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+          lbl.setAttribute('for', safeId);
+          lbl.className = 'accel-hours-item__label';
+          lbl.textContent = accName;
+
+          const inp = document.createElement('input');
+          inp.type = 'number';
+          inp.step = '0.1';
+          inp.min = '0';
+          inp.id = safeId;
+          inp.className = 'accel-hours-input';
+          inp.placeholder = '0';
+          inp.setAttribute('aria-label', `Hours saved for ${accName}`);
+
+          /* Restore previously entered value */
+          if (accelHoursValues.has(accName)) {
+            inp.value = accelHoursValues.get(accName);
+          }
+
+          inp.addEventListener('input', () => {
+            accelHoursValues.set(accName, inp.value);
+            recalcTotal();
+          });
+
+          itemWrap.appendChild(lbl);
+          itemWrap.appendChild(inp);
+          grid.appendChild(itemWrap);
+        });
+
+        accelHoursContainer.appendChild(grid);
+        recalcTotal();
+      };
+
       form.appendChild(
         createHierarchicalAcceleratorSelect({
           labelText,
           name: 'accelerator-used',
           contentEl: valueEl,
+          onSelectionChange: (selectedSet) => {
+            renderAcceleratorHours(selectedSet);
+          },
         }),
       );
+      form.appendChild(accelHoursContainer);
       return;
     }
 

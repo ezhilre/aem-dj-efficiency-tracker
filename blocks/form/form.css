@@ -1942,3 +1942,122 @@ main > .section:first-of-type {
     font-size: 16px;
   }
 }
+
+/* ================================================================
+   Per-Accelerator Hours Panel
+   ================================================================ */
+
+/* Read-only total field — visually distinct so users know it's calculated */
+.hours-saved-total {
+  background: #f9fafb !important;
+  color: #374151 !important;
+  cursor: default !important;
+  font-weight: 700 !important;
+}
+
+.hours-saved-total:focus {
+  border-color: #d1d5db !important;
+  box-shadow: none !important;
+}
+
+/* Container shown below the accelerator selector */
+.accel-hours-container {
+  padding: 18px 20px;
+  border: 1.5px solid #fac9c6;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fffaf9 0%, #fff5f5 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.accel-hours-container[hidden] {
+  display: none;
+}
+
+/* Section heading */
+.accel-hours-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.accel-hours-heading::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e1251b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+/* Grid of accelerator hour inputs */
+.accel-hours-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+/* Each accelerator item: label stacked above input */
+.accel-hours-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.accel-hours-item__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  line-height: 1.3;
+  word-break: break-word;
+  /* Override the bold 700 label default — these are sub-labels */
+  font-weight: 600 !important;
+}
+
+/* Remove the icon pseudo-element from these sub-labels */
+.accel-hours-item__label::before {
+  display: none !important;
+}
+
+.accel-hours-input {
+  width: 100% !important;
+  min-height: 46px !important;
+  padding: 10px 14px !important;
+  font-size: 15px !important;
+  border: 1.5px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  color: #111827 !important;
+  box-sizing: border-box !important;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease !important;
+}
+
+.accel-hours-input::placeholder {
+  color: #9ca3af !important;
+}
+
+.accel-hours-input:focus {
+  outline: none !important;
+  border-color: #e1251b !important;
+  box-shadow: 0 0 0 3px rgba(225, 37, 27, 0.1) !important;
+}
+
+@media (max-width: 700px) {
+  .accel-hours-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .accel-hours-grid {
+    grid-template-columns: 1fr;
+  }
+}
