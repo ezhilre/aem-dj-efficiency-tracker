@@ -1257,18 +1257,69 @@ export default function decorate(block) {
     return success;
   };
 
-  const handleSubmit = () => {
-    const errors = validateAll();
+  const showConfirmationDialog = (onProceed) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'form-confirm-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-describedby', 'form-confirm-desc');
 
-    if (errors.length) {
-      const firstInvalid = errors[0]?.field;
-      if (firstInvalid) {
-        firstInvalid.focus();
-        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const dialog = document.createElement('div');
+    dialog.className = 'form-confirm-dialog';
+
+    const iconWrap = document.createElement('div');
+    iconWrap.className = 'form-confirm-icon';
+    iconWrap.innerHTML = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+
+    const message = document.createElement('p');
+    message.id = 'form-confirm-desc';
+    message.className = 'form-confirm-message';
+    message.textContent = 'Please review your information before submitting.';
+
+    const btnRow = document.createElement('div');
+    btnRow.className = 'form-confirm-buttons';
+
+    const proceedBtn = document.createElement('button');
+    proceedBtn.type = 'button';
+    proceedBtn.className = 'form-confirm-btn form-confirm-btn--proceed';
+    proceedBtn.textContent = 'Proceed';
+    proceedBtn.addEventListener('click', () => {
+      overlay.remove();
+      onProceed();
+    });
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.className = 'form-confirm-btn form-confirm-btn--cancel';
+    cancelBtn.textContent = 'Cancel. I want to review';
+    cancelBtn.addEventListener('click', () => {
+      overlay.remove();
+    });
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.remove();
+    });
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        overlay.remove();
+        document.removeEventListener('keydown', handleKeyDown);
       }
-      return;
-    }
+    };
+    document.addEventListener('keydown', handleKeyDown);
 
+    btnRow.appendChild(proceedBtn);
+    btnRow.appendChild(cancelBtn);
+    dialog.appendChild(iconWrap);
+    dialog.appendChild(message);
+    dialog.appendChild(btnRow);
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+
+    proceedBtn.focus();
+  };
+
+  const doSubmit = () => {
     const data = Object.fromEntries(new FormData(form).entries());
 
     const isPto = typeof ptoCheckbox !== 'undefined' && ptoCheckbox.checked;
@@ -1295,6 +1346,21 @@ export default function decorate(block) {
     console.log('✅ adobeDataLayer push:', payload);
 
     block.replaceChildren(renderSuccessView(data));
+  };
+
+  const handleSubmit = () => {
+    const errors = validateAll();
+
+    if (errors.length) {
+      const firstInvalid = errors[0]?.field;
+      if (firstInvalid) {
+        firstInvalid.focus();
+        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
+    showConfirmationDialog(doSubmit);
   };
 
   /* ── Week indicator banner ──────────────────────────────────── */
