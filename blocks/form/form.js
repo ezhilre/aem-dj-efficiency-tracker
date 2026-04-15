@@ -89,6 +89,44 @@ export default function decorate(block) {
    * Returns { wrapper, hiddenInput } — wrapper is the styled div with icon,
    * hiddenInput is <input type="hidden"> that stores the ISO date value.
    */
+  /* ── Cookie helpers ──────────────────────────────────────────── */
+  const setCookie = (cookieName, value, days) => {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = `${cookieName}=${encodeURIComponent(value)};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+  };
+
+  const getCookie = (cookieName) => {
+    const name = `${cookieName}=`;
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i += 1) {
+      let c = ca[i].trim();
+      if (c.indexOf(name) === 0) {
+        return decodeURIComponent(c.substring(name.length, c.length));
+      }
+    }
+    return '';
+  };
+
+  /* ── Current-week Monday/Sunday helpers ─────────────────────── */
+  const getCurrentWeekMonday = () => {
+    const d = new Date();
+    const day = d.getDay() || 7; // Mon=1 … Sun=7
+    d.setDate(d.getDate() - (day - 1));
+    d.setHours(0, 0, 0, 0);
+    return d;
+  };
+
+  const getCurrentWeekSunday = () => {
+    const mon = getCurrentWeekMonday();
+    const sun = new Date(mon);
+    sun.setDate(mon.getDate() + 6);
+    return sun;
+  };
+
+  /* Registry of date-picker setter functions so we can pre-fill them */
+  const datePickerSetters = {};
+
   const createCustomDatePicker = ({ id, name, errorEl }) => {
     const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'];
@@ -318,6 +356,22 @@ export default function decorate(block) {
       popup.appendChild(footer);
     };
 
+    /* Exposed setter so external code can pre-populate the picker */
+    const setDate = (d) => {
+      selectedDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      viewYear = selectedDate.getFullYear();
+      viewMonth = selectedDate.getMonth();
+      hiddenInput.value = toISO(selectedDate);
+      displayText.textContent = formatDisplay(selectedDate);
+      displayText.classList.remove('cdp-placeholder');
+      displayInput.classList.remove('cdp-display--invalid');
+      hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+      clearFieldError(hiddenInput, errorEl);
+    };
+
+    /* Store setter in registry keyed by name so we can call it after construction */
+    datePickerSetters[name] = setDate;
+
     const openPicker = () => {
       isOpen = true;
       renderCalendar();
@@ -352,7 +406,7 @@ export default function decorate(block) {
     pickerWrap.appendChild(displayInput);
     pickerWrap.appendChild(popup);
 
-    return { pickerWrap, hiddenInput };
+    return { pickerWrap, hiddenInput, setDate };
   };
 
   const createStackField = (labelText, fieldInfo, errorEl) => {
@@ -1343,6 +1397,11 @@ export default function decorate(block) {
   const doSubmit = () => {
     const data = Object.fromEntries(new FormData(form).entries());
 
+    /* ── Task 3: Save email to cookie (90 days) ── */
+    if (data['email-address']) {
+      setCookie('dj_tracker_email', data['email-address'], 90);
+    }
+
     const isPto = typeof ptoCheckbox !== 'undefined' && ptoCheckbox.checked;
 
     /* Build per-accelerator hours breakdown from the granular inputs */
@@ -1491,7 +1550,7 @@ export default function decorate(block) {
 
     if (labelText === 'From Date' || labelText === 'To Date') {
       const dateId = normalizeName(labelText);
-      const { pickerWrap, hiddenInput: dateHidden } = createCustomDatePicker({
+      const { pickerWrap, hiddenInput: dateHidden, setDate: dateSetFn } = createCustomDatePicker({
         id: dateId,
         name: dateId,
         errorEl,
@@ -1505,7 +1564,7 @@ export default function decorate(block) {
         kind: 'date',
       });
 
-      const fieldInfo = { id: dateId, displayEl: pickerWrap, hiddenInput: dateHidden };
+      const fieldInfo = { id: dateId, displayEl: pickerWrap, hiddenInput: dateHidden, setDate: dateSetFn };
 
       if (labelText === 'From Date') {
         pendingDateField = { label: labelText, fieldInfo, errorEl };
@@ -1513,7 +1572,39 @@ export default function decorate(block) {
       }
 
       if (pendingDateField) {
-        form.appendChild(createDateRangeRow(pendingDateField, { label: labelText, fieldInfo, errorEl }));
+        const dateRangeRow = createDateRangeRow(pendingDateField, { label: labelText, fieldInfo, errorEl });
+        form.appendChild(dateRangeRow);
+
+        /* ── Task 1: Auto-fill current week Monday → Sunday ── */
+        const monday = getCurrentWeekMonday();
+        const sunday = getCurrentWeekSunday();
+        if (pendingDateField.fieldInfo.setDate) pendingDateField.fieldInfo.setDate(monday);
+        if (fieldInfo.setDate) fieldInfo.setDate(sunday);
+
+        /* ── Task 2: Date-range validation (≤ 7 days) ── */
+        const fromHidden = pendingDateField.fieldInfo.hiddenInput;
+        const toHidden = fieldInfo.hiddenInput;
+        const fromErrorEl = pendingDateField.errorEl;
+        const toErrorElRef = errorEl;
+
+        const validateDateRange = () => {
+          if (!fromHidden.value || !toHidden.value) return;
+          const from = new Date(fromHidden.value);
+          const to = new Date(toHidden.value);
+          const diffDays = Math.round((to - from) / (1000 * 60 * 60 * 24)) + 1;
+          if (to < from) {
+            setFieldError(toHidden, toErrorElRef, 'End date cannot be before start date.');
+          } else if (diffDays > 7) {
+            setFieldError(toHidden, toErrorElRef, `Date range cannot exceed 7 days (currently ${diffDays} days). This form is for weekly submissions only.`);
+          } else {
+            clearFieldError(fromHidden, fromErrorEl);
+            clearFieldError(toHidden, toErrorElRef);
+          }
+        };
+
+        fromHidden.addEventListener('change', validateDateRange);
+        toHidden.addEventListener('change', validateDateRange);
+
         pendingDateField = null;
       } else {
         const singleWrap = document.createElement('div');
@@ -1690,6 +1781,19 @@ export default function decorate(block) {
         name: 'email-address',
         options: emails,
       });
+
+      /* ── Task 3: Auto-populate email from cookie ── */
+      const savedEmail = getCookie('dj_tracker_email');
+      if (savedEmail) {
+        window.setTimeout(() => {
+          const emailInput = form.querySelector('input[name="email-address"]');
+          if (emailInput) {
+            emailInput.value = savedEmail;
+            emailInput.dispatchEvent(new Event('input', { bubbles: true }));
+            emailInput.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        }, 0);
+      }
       if (pendingHoursRow) {
         const wrapper = document.createElement('div');
         wrapper.className = 'form-row form-row-pair';
