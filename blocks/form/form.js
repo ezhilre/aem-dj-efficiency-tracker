@@ -1575,12 +1575,6 @@ export default function decorate(block) {
         const dateRangeRow = createDateRangeRow(pendingDateField, { label: labelText, fieldInfo, errorEl });
         form.appendChild(dateRangeRow);
 
-        /* ── Task 1: Auto-fill current week Monday → Sunday ── */
-        const monday = getCurrentWeekMonday();
-        const sunday = getCurrentWeekSunday();
-        if (pendingDateField.fieldInfo.setDate) pendingDateField.fieldInfo.setDate(monday);
-        if (fieldInfo.setDate) fieldInfo.setDate(sunday);
-
         /* ── Task 2: Date-range validation (≤ 7 days) ── */
         const fromHidden = pendingDateField.fieldInfo.hiddenInput;
         const toHidden = fieldInfo.hiddenInput;
