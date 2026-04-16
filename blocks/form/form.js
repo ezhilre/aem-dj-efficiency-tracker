@@ -1776,18 +1776,6 @@ export default function decorate(block) {
         options: emails,
       });
 
-      /* ── Task 3: Auto-populate email from cookie ── */
-      const savedEmail = getCookie('dj_tracker_email');
-      if (savedEmail) {
-        window.setTimeout(() => {
-          const emailInput = form.querySelector('input[name="email-address"]');
-          if (emailInput) {
-            emailInput.value = savedEmail;
-            emailInput.dispatchEvent(new Event('input', { bubbles: true }));
-            emailInput.dispatchEvent(new Event('change', { bubbles: true }));
-          }
-        }, 0);
-      }
       if (pendingHoursRow) {
         const wrapper = document.createElement('div');
         wrapper.className = 'form-row form-row-pair';
